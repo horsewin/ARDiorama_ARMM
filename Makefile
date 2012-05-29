@@ -9,7 +9,7 @@ CC = g++
 OPIRALIB = -lOpiraLibrary -lOpiraLibraryMT -lRegistrationAlgorithms
 OPIRAINCPATH = /home/umakatsu/desktop/Lab/M1/OPIRALIBRARY/include
 
-#OPENCVLIB = -lhighgui -lcvaux -lcv -lml -lcxcore
+#OpenGL
 OPENGLLIB = -lGL -lGLU -lglut
 
 #OSG
@@ -26,8 +26,10 @@ VRPNLIB = -lvrpn -lvrpnatmel -lvrpnserver
 #boost library
 BOOSTINC = -I/home/umakatsu/Download/boost_1_43_0
 
-#opencv2.3.1
-OPENCVLIB = -L/usr/local/lib -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_features2d -lopencv_calib3d -lopencv_objdetect -lopencv_contrib -lopencv_legacy -lopencv_flann -lopencv_gpu
+#Opencv2.3.1
+OPENCVLIB = -L/usr/local/lib -lhighgui -lcvaux -lcv -lml -lcxcore
+#Opencv2.3.1
+#OPENCVLIB = -L/usr/local/lib -lopencv_legacy -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_features2d -lopencv_calib3d -lopencv_objdetect -lopencv_contrib -lopencv_ts -lopencv_flann -lopencv_gpu
 
 #OpenNL
 OPENNLINC=-I/home/umakatsu/desktop/Lab/M2/OpenNL3.2.1/src
@@ -44,14 +46,15 @@ ARMMLIB=-L/home/umakatsu/desktop/Lab/M1/OPIRALIBRARY -L/home/umakatsu/Download/v
 #COMPILEFLAGS = -I MY_CUSTOM_INCLUDE_PATH -D_LINUX -D_REENTRANT -Wall  -O3 -march=nocona -msse3 -fno-strict-aliasing
 #LINKFLAGS = -L MY_CUSTOM_LINK_PATH -lGVars3 -lcvd $(3DSLIB)
 COMPILEFLAGS = -I MY_CUSTOM_INCLUDE_PATH -I./include -I/usr/include -I/usr/include/opencv -I/usr/include/flycapture -D_LINUX -D_REENTRANT -Wall -O3 -march=nocona -pipe -fno-strict-aliasing -mfpmath=sse -fomit-frame-pointer -msse3 -fno-tree-vectorize -g -fpermissive -DNDEBUG -fPIC 
-LINKFLAGS = -L MY_CUSTOM_LINK_PATH -L/usr/lib/octave-3.2.3 -L/usr/local/lib -lGLEW -Wl,-rpath /usr/lib/octave-3.2.3 -lblas -llapack -lGVars3 -lcvd -lboost_serialization -loctave -lflycapture -lgslcblas -lhighgui -lcvaux -lcv -lml -lcxcore
+LINKFLAGS = -L MY_CUSTOM_LINK_PATH -L/usr/lib/octave-3.2.3 -L/usr/local/lib -lGLEW -Wl,-rpath /usr/lib/octave-3.2.3 -lblas -llapack -lGVars3 -lcvd -lboost_serialization -loctave -lflycapture -lgslcblas
+# -lhighgui -lcvaux -lcv -lml -lcxcore
 
 ######## Object file #########
-SUBDIRS = ./ARMM ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer/MeshDecomposition #./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
+SUBDIRS = ./ARMM ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer/MeshDecomposition ./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
 VPATH = $(SUBDIRS)
 
-MODELS=Obj/Model3ds.o\
-		  	Obj/Texture.o
+MODELS=Obj/Model3DSForTexture.o\
+		  	Obj/TextureForMeshDecomp.o
 	
 DECOMPOSITION=Obj/ViewingModel.o\
 								Obj/LSCM.o\
@@ -142,8 +145,8 @@ OBJECTS=	Obj/main.o\
 		Obj/Utils.o\
 		Obj/ShooterGame.o\
 		Obj/ShooterGameTarget.o\
-		$(3DSFILES)
-#		$(DECOMPOSITION)\
+		$(3DSFILES)\
+		$(DECOMPOSITION)\
 		$(MODELS)\
 		$(TRANSFER)
 
@@ -162,11 +165,13 @@ all: ARDiorama CameraCalibrator
 
 ARDiorama: $(OBJECTS)
 	cd Obj
-	$(CC) -g -o ARDiorama $(OBJECTS) $(LINKFLAGS) $(ARMMLIB) $(OPENGLLIB) $(3DSLIB) $(EIGENLIB) $(OPENNLLIB)
+	$(CC) -g -o ARDiorama $(OBJECTS) $(LINKFLAGS) $(ARMMLIB) $(OPENGLLIB) $(3DSLIB) $(EIGENLIB) $(OPENNLLIB) $(OPENCVLIB)
 	cd ..
 
 CameraCalibrator:$(CALIB_OBJECTS)
-	$(CC) -g -o CameraCalibrator $(CALIB_OBJECTS) $(LINKFLAGS)
+	cd Obj
+	$(CC) -g -o CameraCalibrator $(CALIB_OBJECTS) $(LINKFLAGS) $(OPENCVLIB)
+	cd ..
 
 
 Obj/%.o: %.cc

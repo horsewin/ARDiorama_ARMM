@@ -10,9 +10,8 @@
 
 #ifndef OPENCV_2_3_1
 #define OPENCV_2_3_1
-	#include "cv.h"
-	#include "highgui.h"
-//	#include <opencv2/opencv.hpp>
+	#include <opencv/cv.h>
+	#include <opencv/highgui.h>
 #endif /* OPENCV_H_ */
 
 #include <cmath>

@@ -11,7 +11,7 @@
 #include "common.h"
 #include "TextureTransfer/ViewingModel.h"
 #include "TextureTransfer/LSCM.h"
-#include "TextureTransfer/Modelling/Texture.h"
+#include "TextureTransfer/Modelling/TextureForMeshDecomp.h"
 
 #include <Eigen/CholmodSupport>
 #include <Eigen/UmfPackSupport>
