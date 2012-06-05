@@ -62,6 +62,9 @@
 									<listOptionValue builtIn="false" value="/home/umakatsu/desktop/Lab/M1/OPIRALIBRARY/include"/>
 									<listOptionValue builtIn="false" value="/home/umakatsu/Download/vrpn"/>
 									<listOptionValue builtIn="false" value="/home/umakatsu/Download/OpenSceneGraph-3.0.1/include"/>
+									<listOptionValue builtIn="false" value="/home/umakatsu/desktop/Lab/M1/mesh_decomp/CHOLMOD/Include"/>
+									<listOptionValue builtIn="false" value="/home/umakatsu/desktop/Lab/M1/mesh_decomp/eigen-eigen-3.0.3/unsupported"/>
+									<listOptionValue builtIn="false" value="/home/umakatsu/desktop/Lab/M1/mesh_decomp/eigen-eigen-3.0.3"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1622027296" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>

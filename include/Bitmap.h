@@ -61,3 +61,4 @@ typedef struct _BitmapInfoHeader{
 ///////////////////////////////////////////////////////////////////////////////
 //ピクセルデータをビットマップに書き込む
 int WriteBitmapFromGL(const char*, int width, int height);
+int WriteBitmapFromGL(const char*, const int & viewport_x, const int & viewport_y, const int & width, const int & height);

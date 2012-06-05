@@ -175,3 +175,102 @@ int WriteBitmapFromGL(const char* filename,int width, int height){
 	fclose(fp);
 	return 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//ピクセルデータをBitmapファイルへ書き込む
+int WriteBitmapFromGL(const char* filename, const int & viewport_x, const int & viewport_y, const int & width, const int & height)
+{
+	GLubyte *pixel_data;
+	FILE *fp;
+	BitmapHeader header;
+	BitmapInfoHeader info;
+	int alignmentParam;
+	int j=0;
+	int x;
+	int y;
+	unsigned char zero=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// チェック用の処理
+	// データ格納のサイズを設定
+	//glPixelStorei(GL_PACK_ALIGNMENT ,2);
+
+	// データ格納の横幅に収まる幅のバイトの倍数を取得
+	glGetIntegerv( GL_PACK_ALIGNMENT,&alignmentParam);
+
+	// 1画素３バイトとするとひとつの行は3*widthバイト＋アルファ
+	int glByteWidth;	// 実際の横幅のバイト数
+
+	// データの幅のバイト数がalignmentParamの倍数であるかをチェック
+	if( width*3%alignmentParam == 0)
+		glByteWidth = width*3;
+	else
+		// そうでなければ，alignmentParamの倍数にあわせた幅のバイトサイズにする
+		glByteWidth = width*3 + alignmentParam - (width*3)%alignmentParam;
+
+	///////////////////////////////////////////////////////////////////////////
+	// 読み込み
+	// メモリ確保
+	pixel_data = (GLubyte*)malloc((glByteWidth)*(height)*(sizeof(GLubyte)));
+	// OpenGLによるピクセルデータの読み出し
+	glReadBuffer(GL_FRONT);
+	glReadPixels(
+		viewport_x,viewport_y,
+		width,height,
+	    GL_RGB,
+		GL_UNSIGNED_BYTE,
+		pixel_data);
+
+	///////////////////////////////////////////////////////////////////////////
+	// ファイルオープン
+	if( ( fp = fopen(filename, "wb") )==NULL){
+		return -1;
+	}
+	//ヘッダ構造体の初期化
+	InitHeaders(&header, &info);
+	//Bitmapサイズ
+	info.width = width;
+	info.height = height;
+	int writeWidth;
+
+	///////////////////////////////////////////////////////////////////////////
+	// BITMAP用の横幅の処理
+	// データの幅のバイト数が4の倍数であるかをチェック
+	if( width*3%4 == 0)
+		writeWidth = width*3;
+	else
+		// そうでなければ，4の倍数にあわせた幅のバイトサイズにする
+		writeWidth = width*3 + 4 - (width*3)%4;
+
+	///////////////////////////////////////////////////////////////////////////
+	//ファイル容量
+	header.filesize =
+		writeWidth*height		//ビット情報量
+		+ 14					//BitmapHeader構造体サイズ
+		+ 40;					//BitmapInfoHeader構造体サイズ
+	//ヘッダ書き込み
+	WriteHeader(&header,fp);
+	WriteInfoHeader(&info,fp);
+
+	///////////////////////////////////////////////////////////////////////////
+	// イメージデータ書き込み
+	for( y=0 ; y < height ; y++ ){
+		// データをBGRの順で書き込み
+		for( x=0 ; x < width ; x++ ){
+			j=fwrite((pixel_data+x*3+glByteWidth*y+2),sizeof(GLubyte),1,fp);
+			j=fwrite((pixel_data+x*3+glByteWidth*y+1),sizeof(GLubyte),1,fp);
+			j=fwrite((pixel_data+x*3+glByteWidth*y),sizeof(GLubyte),1,fp);
+		}
+		// 幅のバイト数が4の倍数でないときは０で埋める
+		if( width*3%4 != 0)
+			for( int j=0;j<4-(width*3)%4;j++)
+				fwrite(&zero,sizeof(GLubyte),1,fp);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// メモリ開放
+	free(pixel_data);
+	// ファイルクローズ
+	fclose(fp);
+	return 0;
+}

@@ -4,8 +4,7 @@
 #include <gvars3/instances.h>
 
 #include <iostream>
-//#include "myCVmethod.h"
-#include "TextureTransfer/main.h"
+#include "common.h"
 
 #include <cvd/image_io.h>
 
@@ -330,15 +329,14 @@ GLuint Model3DSForTexture::_GenerateDisplayList(Lib3dsFile * pModel, bool bWiref
 	GLuint list = glGenLists(1);
 	if (list != 0) {
 		glNewList(list, GL_COMPILE);
-		cout << "The number of materials : " << pModel->nmaterials << endl;
+//		cout << "The number of materials : " << pModel->nmaterials << endl;
 		// Loop through every mesh
 		REP(nm,pModel->nmaterials) {
 			bool textureOn = false; // if the material has a texture -> true
 			string sFile = pModel->materials[nm]->texture1_map.name;
 			if (!sFile.empty() && texturesList.size() > 0) {
 				textureOn = true;
-				cout << "Texture Name(material" << nm << ") : "
-						<< sFile.c_str() << endl;
+//				cout << "Texture Name(material" << nm << ") : " << sFile.c_str() << endl;
 				// Activate TextureMapping
 				texturesList.front()->bind();
 			} else {

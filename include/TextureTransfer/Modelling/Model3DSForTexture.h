@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "TextureTransfer/Modelling/TextureForMeshDecomp.h"
-#include "TextureTransfer/Modelling/ImageType.h"
+#include "ImageType.h"
 #include "OpenGL.h"
 
 #include <TooN/TooN.h>

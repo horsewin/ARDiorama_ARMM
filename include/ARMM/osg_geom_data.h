@@ -413,7 +413,7 @@ osg::Node* osg3DSFileFromDiorama( const char* file)
 		geometry->addPrimitiveSet(faceArray.get());
 //		osgUtil::SmoothingVisitor::smooth (*geometry);
 		geometry->setTexCoordArray(0, texcoords.get());
-		cout << "Texture size(in loader) = " << texcoords->size() << endl;
+//		cout << "Texture size(in loader) = " << texcoords->size() << endl;
 
 		//		geometry->setNormalArray(normalArray);
 		//		geometry->setNormalIndices(normalIndexArray);

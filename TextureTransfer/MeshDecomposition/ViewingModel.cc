@@ -313,6 +313,124 @@ namespace TextureTransfer
 		mIsConvert = true;
 	}
 
+	void ViewingModel::Save3DModel(const char * filename)
+	{
+		// Creation of a 3DS file
+		Lib3dsFile * sModel = lib3ds_file_new();
+
+		strcpy( sModel->name , filename);
+
+		// Reserve the material setting
+		sModel->nmaterials = mTexture.size();
+		sModel->materials = new Lib3dsMaterial*[sModel->nmaterials];
+
+		cout << "The number of textures = " << sModel->nmaterials << endl;
+
+		REP(m,sModel->nmaterials){
+			ostringstream textureFilename;
+			textureFilename << "LSCM_texture" << m;
+			sModel->materials[m] = lib3ds_material_new(textureFilename.str().c_str() );
+			textureFilename << ".bmp";
+			strcpy( sModel->materials[m]->texture1_map.name , textureFilename.str().c_str() );
+		}
+
+		ostringstream com1, com2;
+		com1 << "cp texture1.bmp " << sModel->materials[0]->texture1_map.name;
+		if( !system( com1.str().c_str() ) ){
+			cerr << "Error in ViewingModel: System command is not valid";
+		}
+		com2 << "cp warping1.bmp " << sModel->materials[1]->texture1_map.name ;
+		if( !system( com2.str().c_str() ) ){
+			cerr << "Error in ViewingModel: System command is not valid";
+		}
+
+		sModel->nmeshes = mTexture.size();
+		sModel->meshes = new Lib3dsMesh*[sModel->nmeshes];
+
+		IndexedMesh * tmpMesh = mLSCM->mMesh.get();
+
+		int isTriangles = 0;
+		REP(texNumber, sModel->nmeshes)
+		{
+			ostringstream meshFilename;
+			meshFilename << "mesh" << texNumber;
+			sModel->meshes[texNumber] = lib3ds_mesh_new( meshFilename.str().c_str() );
+
+			int nFaces = 0, nVertices = 0;
+			vector<int> indices;
+			//メッシュに属する頂点数を数えてインデックスを割り振る
+			for(unsigned int loopVer=0; loopVer<tmpMesh->mVertices.size(); loopVer+=3)
+			{
+				if( tmpMesh->mTextureNumber[loopVer] == texNumber || isTriangles > 0)
+				{
+//					isTriangles++;
+					REP(id,3){
+						nVertices++;
+						indices.push_back(loopVer + id);
+					}
+					nFaces++;
+				}
+//				}
+//				isTriangles %= 3;
+//				if( isTriangles == 0 ){
+//					nFaces++;
+//				}
+			}
+
+			cout << "The number of vertices = " << nVertices << endl;
+			cout << "The number of faces= " << 	nFaces    << endl;
+
+
+			// Creating temporary memory for data of face
+			sModel->meshes[texNumber]->faces 		= new Lib3dsFace[nFaces];
+			sModel->meshes[texNumber]->vertices	= new float[nVertices][3];
+			sModel->meshes[texNumber]->texcos		= new float[nVertices][2];
+			sModel->meshes[texNumber]->nfaces 	  = nFaces;
+			sModel->meshes[texNumber]->nvertices = nVertices;
+
+			//for warping texture mapping
+			double ratio_x = (W_WIDTH*0.5 -  1) / (tmpMesh->mTexMax.x - tmpMesh->mTexMin.x);
+			double ratio_y = (W_HEIGHT*0.5 - 1) / (tmpMesh->mTexMax.y - tmpMesh->mTexMin.y);//
+
+			// Reserve the vertices information
+			nFaces = 0;
+			for(unsigned int loopVer=0; loopVer<nVertices; loopVer++)
+			{
+				if( tmpMesh->mTextureNumber[loopVer] == texNumber || isTriangles > 0)
+				{
+					// Reserve the face setting
+					sModel->meshes[texNumber]->faces[nFaces].material = texNumber;
+
+					sModel->meshes[texNumber]->faces[nFaces].index[isTriangles] = loopVer;
+
+					sModel->meshes[texNumber]->vertices[loopVer][0] = tmpMesh->mVertices[indices[loopVer]].point.x;
+					sModel->meshes[texNumber]->vertices[loopVer][1] = tmpMesh->mVertices[indices[loopVer]].point.y;
+					sModel->meshes[texNumber]->vertices[loopVer][2] = tmpMesh->mVertices[indices[loopVer]].point.z;
+
+					sModel->meshes[texNumber]->texcos[loopVer][0] = (tmpMesh->mTextureCoords[indices[loopVer]].x - tmpMesh->mTexMin.x) * ratio_x/(W_WIDTH/2);
+					sModel->meshes[texNumber]->texcos[loopVer][1] = ((W_HEIGHT/2 - (tmpMesh->mTextureCoords[indices[loopVer]].y - tmpMesh->mTexMin.y) * ratio_y) - 1 ) / (W_HEIGHT/2);
+
+					isTriangles++;
+				}
+
+				isTriangles %= 3;
+				if( isTriangles == 0 ){
+					nFaces++;
+				}
+			}
+		}
+
+		ostringstream saveName;
+		saveName << filename << ".3ds";
+		lib3ds_file_save( sModel , saveName.str().c_str());
+
+		ostringstream com;
+		com << "mv " << saveName.str().c_str() << " LSCM_texture0.bmp LSCM_texture1.bmp ~/NewARDiorama/ARDiorama/ARMM/Data/rec/";
+		if( system( com.str().c_str() ) );
+
+		cout << "Save 3DS..." << saveName.str().c_str() << endl;
+	}
+
 	deque<Texture *> ViewingModel::LoadTextures(::Lib3dsFile * pModel, string dirpath) {
 		assert( pModel );
 		// Creation of the texture's list
@@ -828,7 +946,10 @@ namespace TextureTransfer
 	, mHasTexture(false), mMeshSelected(false), mModelname(name)
 	{
 	//  mModelname = name;
-	  REP(i,3) mAngles[i] = 0.0;
+	  REP(i,3){
+		  mTrans[i]  = 0.0;
+		  mAngles[i] = 0.0;
+	  }
 	//  mLSCM.clear();
 	//  boost::shared_ptr<LSCM> lscm = boost::shared_ptr<LSCM>(new LSCM());
 	//  mLSCM.push_back(lscm);

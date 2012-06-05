@@ -8,7 +8,7 @@
 // Includes
 //-------------------------------------------------------------------
 #include "OpenGL.h"
-#include "BasicFace.h"
+#include "TextureTransfer/BasicFace.h"
 
 #include <Eigen/Sparse>
 #include <Eigen/Core>
@@ -67,6 +67,7 @@ namespace TextureTransfer
 	  ~ViewingModel();
 
 	  bool RunLSCM();
+	  void Save3DModel(const char * filename);
 
 	  bool LoadTexture(const char * filename);
 	  void ConvertDataStructure();
@@ -115,7 +116,7 @@ namespace TextureTransfer
 
 	  float mScales;
 	  double mAngles[3];
-
+	  double mTrans[3];
 	//  std::deque<Texture *> texturesList; // A set of Textures 2011.6.7
 	  std::pair<int,Mesh> mSelectedMesh; //first : an index for the matrix having harmonic field(mTexparts), second: a set of meshes
 

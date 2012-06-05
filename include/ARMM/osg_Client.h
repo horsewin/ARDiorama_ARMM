@@ -1,6 +1,18 @@
+/*
+ * osg_Client.h
+ *
+ *  Created on: 2011/05/xx
+ *  	 Author: Adrian Clark and Thammathip Piumsomboon from HIT Lab NZ
+ *
+ *  This header file is edited by Atsushi Umakatsu, Osaka university master student in 2012.
+ *
+ */
 #ifndef OSG_CLIENT_H
 #define OSG_CLIENT_H
 
+//-------------------------------------------------------------------
+// Includes
+//-------------------------------------------------------------------
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 #include <osg/Texture2D>
@@ -31,6 +43,9 @@
 //Original objects
 #include "osg_geom_data.h"
 
+//---------------------------------------------------------------------------
+// Constant/Define
+//---------------------------------------------------------------------------
 #define SIM_MICROMACHINE 1
 #define REP(i,n) for(int i=0;i<(int)n;++i)
 
@@ -41,6 +56,15 @@ typedef unsigned char uchar;
 const int WINDOW_WIDTH  = 640;
 const int WINDOW_HEIGHT = 480;
 
+//for virtual hands
+const int MAX_NUM_HANDS = 1;
+
+//for virtual objects
+const int MAX_NUM_VIR_OBJ = 5;
+
+//---------------------------------------------------------------------------
+// Global
+//---------------------------------------------------------------------------
 //to show terrain(this variable don't be needed)
 bool WIREFRAME_MODE = false;
 
@@ -50,10 +74,6 @@ float TrimeshScale = 1;
 
 //for virtual objects
 int Virtual_Objects_Count = 0;
-const int MAX_NUM_VIR_OBJ = 5;
-
-//for virtual hands
-const int MAX_NUM_HANDS = 1;
 
 vector<int> obj_ind;//to remove a lost object
 
@@ -63,15 +83,19 @@ int  collisionIdx = 0;
 std::vector<osg::PositionAttitudeTransform*> hand_object_global_array;
 std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[MAX_NUM_HANDS];
 
-void setOSGTrimeshScale(float scale) {
-	TrimeshScale = scale;
-}
-
 void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale);
 void osg_setHFNode(osg::Node* n);
 void osgAddObjectNode(osg::Node* n);
 void osg_createHand(int index, float world_scale, float ratio);
 void osg_UpdateHand(int index, float *x, float *y, float *grid);
+
+
+//---------------------------------------------------------------------------
+// Code
+//---------------------------------------------------------------------------
+void setOSGTrimeshScale(float scale) {
+	TrimeshScale = scale;
+}
 
 class ARTrackedNode : public osg::Group {
 
@@ -207,6 +231,7 @@ public:
 
 	std::vector<osg::ref_ptr<osg::Node> > obj_node_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_transform_array;
+	std::vector<osg::PositionAttitudeTransform*> obj_fonts_array;
 
 	std::vector<osg::PositionAttitudeTransform*> world_sphere_transform_array;
 
@@ -287,7 +312,6 @@ void osg_init(double *projMatrix) {
 	fgCamera->setClearMask(GL_DEPTH_BUFFER_BIT);
 	fgCamera->setProjectionMatrix(osg::Matrix(projMatrix));
 	root->addChild(fgCamera.get());
-
 	arTrackedNode = new ARTrackedNode();
 	fgCamera->addChild(arTrackedNode);
 
@@ -562,6 +586,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 	for(uint i = 0; i < v_array.size(); i++) {
 		obj_transform_array.at(i)->setAttitude(q_array.at(i));
 		obj_transform_array.at(i)->setPosition(v_array.at(i));
+		obj_fonts_array.at(i)->setPosition(v_array.at(i));
 	}
 
 #endif /*SIM_MICROMACHINE*/
@@ -600,6 +625,26 @@ void osg_UpdateHeightfieldTrimesh(float *ground_grid) {
 	HeightFieldGeometry_line->dirtyDisplayList();
 }
 
+osg::Node* CreateFontData(const int & ind) {
+	// フォントを取得する
+	osgText::Font* font = osgText::readFontFile("fonts/arial.ttf");
+
+	// テキストを生成する
+	osgText::Text* text = new osgText::Text();
+	text->setAlignment(osgText::Text::CENTER_CENTER);
+	text->setAxisAlignment(osgText::Text::XZ_PLANE);
+	text->setFont(font);
+	text->setColor(osg::Vec4f(1.0f,1.0f,0.0f,1.0f));
+	text->setFontResolution(300,300);
+	stringstream ss;
+	ss << ind;
+	text->setText(ss.str());
+	osg::Geode* textGeode = new osg::Geode();
+	textGeode->addDrawable(text);
+
+	return textGeode;
+}
+
 void osgAddObjectNode(osg::Node* n) {
 		obj_node_array.push_back(n);
 
@@ -617,6 +662,12 @@ void osgAddObjectNode(osg::Node* n) {
 		shadowedScene->addChild( obj_transform_array.at(index) );
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+
+		//for debug
+		obj_fonts_array.push_back(new osg::PositionAttitudeTransform());
+		obj_fonts_array.at(index)->addChild(CreateFontData(index));
+		shadowedScene->addChild( obj_fonts_array.at(index) );
+		obj_fonts_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
 		printf("Client Object number: %d added \n", index+1);
 }
@@ -698,7 +749,7 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 			else
 			{
 //				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(0,0,100));
-				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, 1*scale));
+				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, 0*scale));
 			}
 		}
 	}
@@ -709,9 +760,9 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 			for(int j = 0; j < MIN_HAND_PIX; j++) {
 				int curr = i*MIN_HAND_PIX + j;
 				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
-					cout << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
-					obj_transform_array.at( obj_transform_array.size()-1)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
-					obj_transform_array.at( obj_transform_array.size()-1)->setAttitude(obj_transform_array.at( obj_transform_array.size()-1)->getAttitude());
+//					cout << id << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
+					obj_transform_array.at( collisionIdx )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
+					obj_transform_array.at( collisionIdx )->setAttitude(obj_transform_array.at( collisionIdx  )->getAttitude());
 					return;
 				}
 			}

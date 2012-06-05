@@ -48,6 +48,8 @@ namespace ARMM{
 	bool running = true;
 
 	bool collide[2];
+	int	  objCollision;
+	float pCollision[3];
 	//these coord are considered as Bullet coord
 	//so you have to correct to use in OSG coord
 	float hand_coord_x[MAX_NUM_HANDS][HAND_GRID_SIZE];
@@ -308,9 +310,16 @@ namespace ARMM{
 		else if( t.sensor == CAR_PARAM){
 			if ( static_cast<int>(t.pos[0]) != 0){
 				m_pass = static_cast<int>(t.pos[0]);
-				if( t.pos[1] > 0.5) collide[0] = true;
-				if( t.pos[2] > 0.5) collide[1] = true;
 			}
+		}
+		//----->Collision checker
+		else if( t.sensor > CAR_PARAM && t.sensor <= COLLISION_PARAM){
+			REP(p,3){
+				pCollision[p] = (float)t.pos[p];			// the position of collision
+			}
+			if( t.quat[0] > 0.5) collide[0] = true;		// flag whether collide or not
+			if( t.quat[1] > 0.5) collide[1] = true;		// flag whether collide or not
+			objCollision = static_cast<int>( t.quat[2]);  //meaning index of a collided object
 		}
 		//----->Receive objects info
 		else{
@@ -386,20 +395,17 @@ namespace ARMM{
 			m_pass = 0;
 		}
 		if(collide[0] && collide[1] && !collision){
-			m_pass = 100;
 			collide[0] = false;
 			collide[1] = false;
 
 			collision = true;
 
-			kc->set_input(m_pass);
-//			cout << "<<Create a texture image with ocurring collision>>" << endl;
-//
-//			// set a created hand to the graphics tree
-//			const char * str = "ARMM/Data/rec/NewTorus.3ds";
-//			osgAddObjectNode(osgTexture(str));
-//			collisionIdx = obj_transform_array.size() - 1;
+			kc->set_input(100);
 
+			// set a created hand to the graphics tree
+			kc->set_input(101);
+			collisionIdx = obj_transform_array.size() - 1;
+			cout << "Collision Index = " << collisionIdx << endl;
 			m_pass = 0;
 		}
 #endif
@@ -542,5 +548,16 @@ namespace ARMM{
 			obj_ind.clear();
 		}
 	}
-}
+
+	void ARMM::GetCollisionCoordinate(const int & index)
+	{
+//		osg::Camera* camera = viewer.getCamera();
+//
+//		osg::Matrixd 	projMatrix = camera->getProjectionMatrix();
+//		osg::Matrixd	viewMatrix = camera->getViewMatrix();
+		osg::Matrix	modelMatrix = obj_transform_array[index]->asMatrixTransform()->getMatrix();
+
+	}
+
+}/*  Endf of Namespace ARMM */
 

@@ -28,7 +28,8 @@
 #define NUM_WHEELS 4
 
 const int NUM_OBJECTS = 10;
-const int CAR_PARAM = NUM_CARS*NUM_WHEELS+NUM_CARS;
+const int CAR_PARAM 			= NUM_CARS*NUM_WHEELS+NUM_CARS;
+const int COLLISION_PARAM	= CAR_PARAM + 1;
 extern bool running;
 
 //---------------------------------------------------------------------------
@@ -91,6 +92,7 @@ namespace ARMM{
 		void RenderScene(IplImage *arImage, ::Capture *capture);
 		void RenderScene(IplImage *arImage, CvMat * distortion);
 		void DeleteLostObject( void );
+		void GetCollisionCoordinate(const int & index);
 
 	private:
 		ARMMClient * armm_client;

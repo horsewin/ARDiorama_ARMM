@@ -49,7 +49,7 @@ inline void mycvshow(IplImage * object  , const char *window){
 }
 
 template<typename tname>
-inline void myReadRawimage(ImageType mimFrameRGB , tname * dst_image){
+void myReadRawimage(::ImageType mimFrameRGB , tname * dst_image){
 //	ImageType mimFrameRGB_copy;	// frame clone
 //	mimFrameRGB_copy.copy_from(mimFrameRGB);// copy original frame
 //	const int image_width = mimFrameRGB_copy.size().x;
@@ -80,7 +80,7 @@ inline void myReadRawimage(ImageType mimFrameRGB , tname * dst_image){
 }
 
 template<typename tname>
-inline void myReadRawimageReverse(ImageType mimFrameRGB , tname * dst_image){
+void myReadRawimageReverse(::ImageType mimFrameRGB , tname * dst_image){
 	const int image_width = mimFrameRGB.size().x;
 	const int image_height = mimFrameRGB.size().y;
 	int datasize2 =  image_width * image_height * 3;  // ppm(カラー)用
@@ -91,40 +91,6 @@ inline void myReadRawimageReverse(ImageType mimFrameRGB , tname * dst_image){
 		dst_image[ (image_height - line ) * image_width + row + 2] = mimFrameRGB[line][row].red;
 		dst_image[ (image_height - line ) * image_width + row + 1] = mimFrameRGB[line][row].green;
 		dst_image[ (image_height - line ) * image_width + row + 0] = mimFrameRGB[line][row].blue;
-	}
-}
-
-/**
- * @param input  : convert opencv data
- * @param dst_image : converted regular type data
- * @param image_width : image width
- * @param image_height : image height
- * @param channel : color channel
- */
-
-template < class T >
-inline void mycvConvertRegularType(IplImage * input , T * dst_image, const int channel){
-	assert(input);
-	assert(dst_image);
-	const int image_width = input->width;
-	const int image_height = input->height;
-//	assert(input->imageSize == (image_width * image_height * channel));
-	T p[3];
-	int widthstep = input->widthStep;
-	for(int y=0; y<image_height; y++) {
-		for(int x=0; x<image_width; x++) {
-			if(channel == 3){
-				p[0] = input->imageData[ widthstep * y + x * channel + 2];    // R
-				p[1] = input->imageData[ widthstep * y + x * channel + 1];    // G
-				p[2] = input->imageData[ widthstep  * y + x * channel + 0];    // B
-			}else if(channel == 1){
-				p[0] = input->imageData[ widthstep * y + x * channel];    // intensity
-			}
-			/* 出力ファイルに書き込む */
-			for(int id = 0; id < channel; id++){
-				dst_image[x*channel + y * widthstep + id] = p[id];
-			}
-		}
 	}
 }
 
@@ -158,5 +124,40 @@ inline IplImage* mycvConvertIplImage(const unsigned char * src , const int image
 	}
 	return dst_image;
 }
+
+/**
+ * @param input  : convert opencv data
+ * @param dst_image : converted regular type data
+ * @param image_width : image width
+ * @param image_height : image height
+ * @param channel : color channel
+ */
+
+template < class T >
+void mycvConvertRegularType(IplImage * input , T * dst_image, const int channel){
+	assert(input);
+	assert(dst_image);
+	const int image_width = input->width;
+	const int image_height = input->height;
+//	assert(input->imageSize == (image_width * image_height * channel));
+	T p[3];
+	int widthstep = input->widthStep;
+	for(int y=0; y<image_height; y++) {
+		for(int x=0; x<image_width; x++) {
+			if(channel == 3){
+				p[0] = input->imageData[ widthstep * y + x * channel + 2];    // R
+				p[1] = input->imageData[ widthstep * y + x * channel + 1];    // G
+				p[2] = input->imageData[ widthstep  * y + x * channel + 0];    // B
+			}else if(channel == 1){
+				p[0] = input->imageData[ widthstep * y + x * channel];    // intensity
+			}
+			/* 出力ファイルに書き込む */
+			for(int id = 0; id < channel; id++){
+				dst_image[x*channel + y * widthstep + id] = p[id];
+			}
+		}
+	}
+}
+
 
 #endif /* MYCVMETHOD_H_ */

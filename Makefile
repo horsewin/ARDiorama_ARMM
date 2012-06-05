@@ -50,7 +50,7 @@ LINKFLAGS = -L MY_CUSTOM_LINK_PATH -L/usr/lib/octave-3.2.3 -L/usr/local/lib -lGL
 # -lhighgui -lcvaux -lcv -lml -lcxcore
 
 ######## Object file #########
-SUBDIRS = ./ARMM ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer/MeshDecomposition ./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
+SUBDIRS = ./ARMM ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer ./TextureTransfer/MeshDecomposition ./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
 VPATH = $(SUBDIRS)
 
 MODELS=Obj/Model3DSForTexture.o\
@@ -61,7 +61,8 @@ DECOMPOSITION=Obj/ViewingModel.o\
 								Obj/IndexedMesh.o
 
 TRANSFER = Obj/TransferController.o\
-						Obj/MLS.o
+						Obj/MLS.o\
+						Obj/main_TextureTransfer.o
 	
 
 VIDEOSOURCE=Obj/VideoSource_Linux_DV.o	
