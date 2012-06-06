@@ -32,7 +32,6 @@
 #include "vrpn_Connection.h"
 
 //Keyboard controller
-
 #include "ARMM/KeyboardControlls_client.h"
 
 #include <stdio.h>
@@ -48,7 +47,6 @@ namespace ARMM{
 	bool running = true;
 
 	bool collide[2];
-	int	  collisionInd;
 	float pCollision[3];
 	//these coord are considered as Bullet coord
 	//so you have to correct to use in OSG coord
@@ -400,15 +398,17 @@ namespace ARMM{
 
 			collision = true;
 
+			cout << "Collided obj  index = " << collisionInd	 << endl;
+			cout << "All of Object index = " << objectIndex  << endl;
 			kc->set_input(100);
 
 			// set a created hand to the graphics tree
 			kc->set_input(101);
+
+			m_pass = 0;
 			collidedNodeInd = obj_transform_array.size() - 1;
 			cout << "Collided node index = " << collidedNodeInd << endl;
-			cout << "Collided obj  index = " << collisionInd	 << endl;
-			cout << "All of Object index = " << objectIndex  << endl;
-			m_pass = 0;
+
 		}
 #endif
 	}

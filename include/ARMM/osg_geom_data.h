@@ -399,7 +399,6 @@ osg::Node* osg3DSFileFromDiorama( const char* file)
 				{
 					// Get the index for each point of the face
 					int index = mesh->faces[(*Iter)].index[vv];
-					int SCALE = 150;
 					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
 					faceArray->push_back(id++);
 					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1 - mesh->texcos[index][1])); // caution to texture coordinate

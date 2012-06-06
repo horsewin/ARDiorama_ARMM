@@ -47,10 +47,12 @@ typedef void (VRPN_CALLBACK *vrpn_TRACKERHANDCHANGEHANDLER)(void *userdata,
 class KeyboardController_client;
 
 namespace ARMM{
-	//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
 	// Class definition
 	//---------------------------------------------------------------------------
 	class PointgreyCamera;
+
 	class ARMMClient : public vrpn_Tracker_Remote
 	{
 	public:

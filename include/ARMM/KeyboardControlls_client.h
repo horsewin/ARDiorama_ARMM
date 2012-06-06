@@ -1,3 +1,4 @@
+/*
 #ifndef KEYBOARD_CONTROLSCLIENT_H
 #define KEYBOARD_CONTROLSCLIENT_H
 
@@ -7,6 +8,38 @@
 
 //OpenCV
 #include "opencv/cv.h"
+
+const float CUBE_SIZE = 4;
+const float SPHERE_SIZE = 2;//FULL SIZE
+
+using namespace std;
+
+class KeyboardController_client
+{
+public:
+	KeyboardController_client();
+	int		check_input();
+	void	set_input(const int & key);
+
+private:
+	inline bool getKey(int key);
+
+};
+#endif
+*/
+
+
+#ifndef KEYBOARD_CONTROLSCLIENT_H
+#define KEYBOARD_CONTROLSCLIENT_H
+
+#define SIM_MICROMACHINE 1
+
+#include <iostream>
+
+//OpenCV
+#include "opencv/cv.h"
+
+int	  collisionInd;
 
 extern int collide_counter;
 extern double prev_collide_clock;
@@ -44,7 +77,7 @@ public:
 //				osgAddObjectNode(osgSphereNode(SPHERE_SIZE));
 //				Virtual_Objects_Count++;
 				break;
-				
+
 			case 65:
 				break;
 
@@ -105,48 +138,11 @@ public:
 
 			case 100: {//衝突判定のけーすとして用いる
 
-				//erase old node
-				int nObjTrans = obj_transform_array.size();
-				if( nObjTrans > 0){
-	/*				vector<osg::PositionAttitudeTransform*>::iterator it = obj_transform_array.begin();
-					vector<osg::ref_ptr<osg::Node> >::iterator it2 = obj_node_array.begin();
-					shadowedScene->removeChild(obj_transform_array.at(0));
-					obj_transform_array.erase(it);
-					obj_node_array.erase(it2);
-*/
-					//re-create new node
-					const char * str = "ARMM/Data/rec/NewTorus.3ds";
-					osg::ref_ptr<osg::Node> obj = osg3DSFileFromDiorama(str);
-					LoadCheck(obj.get(), str);
+				//Operation
+				int ind = objectIndex - collisionInd;
+				int childInd = obj_transform_array[ind]->getChildIndex(obj_node_array[ind]); //子ノードのインデックスを取得
+				obj_transform_array[ind]->setChild(childInd, osgSphereNode(5));				//子ノードを別のノードでセットしなおす
 
-					osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-					double scale = 80.1812; //サーバ側の値から決定した
-					obj_pat->setScale(osg::Vec3d(scale,scale,scale));
-					obj_pat->setAttitude(osg::Quat(
-						osg::DegreesToRadians(50.f), osg::Vec3d(1.0, 0.0, 0.0),
-						osg::DegreesToRadians(-50.f), osg::Vec3d(0.0, 1.0, 0.0),
-						osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
-						));
-					obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-					obj_pat->addChild(obj);
-
-//					osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
-
-
-/* it cannot be worked
-					obj_node_array[1] = obj;
-					obj_transform_array[1] = obj_pat;
-*/
-
-					int childInd = obj_transform_array[1]->getChildIndex(obj_node_array[1]);
-					obj_transform_array[1]->setChild(childInd, osgSphereNode(5));
-
-					cout << "<<Replace objects>>" << endl;
-				}
-				else
-				{
-					cerr << "No object should be deleted!!" << endl;
-				}
 				break;
 			}
 			//衝突判定があった後、手に追従させるテクスチャを生成
@@ -158,7 +154,7 @@ public:
 				LoadCheck(obj.get(), str);
 
 				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-				double scale = 90; //適当
+				double scale = 81.1812; //サーバ側の値から決定した
 				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
 				obj_pat->setAttitude(osg::Quat(
 					osg::DegreesToRadians(50.f), osg::Vec3d(1.0, 0.0, 0.0),

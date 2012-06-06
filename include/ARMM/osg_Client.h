@@ -96,9 +96,9 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid);
 //---------------------------------------------------------------------------
 // Code
 //---------------------------------------------------------------------------
-void setOSGTrimeshScale(float scale) {
+/*void setOSGTrimeshScale(float scale) {
 	TrimeshScale = scale;
-}
+}*/
 
 class ARTrackedNode : public osg::Group {
 
@@ -116,13 +116,13 @@ public:
 		// Create a local light.
 		light = new osg::Light;
 		light->setLightNum(0);
-		light->setPosition(osg::Vec4(0.0f, 0.0f, 20.0, 0.0f));
+		light->setPosition(osg::Vec4(-5.0f, -5.0f, 500.0, 0.0f));
 		light->setAmbient(osg::Vec4(0.1f,0.1f,0.1f,1.0f));
 		light->setDiffuse(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
 		light->setSpecular(osg::Vec4(0.7f,0.7f,0.7f,1.0f));
-		light->setConstantAttenuation(0.2f);
-		light->setLinearAttenuation(0.05f);
-		light->setQuadraticAttenuation(0.05f);
+		light->setConstantAttenuation(0.f);
+		light->setLinearAttenuation(0.f);
+		light->setQuadraticAttenuation(0.f);
 
 		osg::LightSource* lightSource = new osg::LightSource;	
 		lightSource->setLight(light);
@@ -500,7 +500,8 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 
 		//Set up the depth testing for the landscale
 		osg::Depth * depth = new osg::Depth();
-		depth->setWriteMask(true); depth->setFunction(osg::Depth::LEQUAL);
+		depth->setWriteMask(true);
+		depth->setFunction(osg::Depth::LEQUAL);
 		mt->getOrCreateStateSet()->setAttributeAndModes(depth, osg::StateAttribute::ON);
 
 		//Set up the shadow masks
@@ -518,7 +519,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 
 		//At the heightmap twice, once for shadowing and once for occlusion
 //		arTrackedNode->addModel(mt);
-//		shadowedScene->addChild(mt);
+		shadowedScene->addChild(mt);
 
 
 	}
@@ -760,7 +761,7 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 			else
 			{
 //				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(0,0,100));
-				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, 0*scale));
+				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, 500*scale));
 			}
 		}
 	}

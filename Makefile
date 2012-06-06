@@ -92,6 +92,7 @@ ARMM = Obj/ARMM_Client.o\
 				Obj/ARMM_vrpn.o\
 				Obj/MyShadowMap.o\
 				Obj/PointgreyCamera.o
+#				Obj/KeyboardControlls_client.o
 														
 # Object files for an AR Diorama
 ARDiorama = Obj/Authoring.o\
