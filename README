@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+<MEMO>
+・ノードの置き換え方
+std::vector<osg::PositionAttitudeTransform*>とかで管理しているオブジェクト群の中のうちのオブジェクト1つをスワップする方法。
+
+					//Declaration
+					std::vector<osg::ref_ptr<osg::Node> > obj_node_array;
+					std::vector<osg::PositionAttitudeTransform*> obj_transform_array;
+
+					//Operation
+					int childInd = obj_transform_array[ind]->getChildIndex(obj_node_array[ind]);　//子ノードのインデックスを取得
+					obj_transform_array[ind]->setChild(childInd, osgSphereNode(5));								//子ノードを別のノードでセットしなおす

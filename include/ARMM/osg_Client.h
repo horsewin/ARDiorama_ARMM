@@ -76,9 +76,12 @@ float TrimeshScale = 1;
 int Virtual_Objects_Count = 0;
 
 vector<int> obj_ind;//to remove a lost object
+int objectIndex = 2; // 2 car is in world
 
 bool collision = false;
-int  collisionIdx = 0;
+int  collidedNodeInd = 0;
+
+bool handAppear = false;
 
 std::vector<osg::PositionAttitudeTransform*> hand_object_global_array;
 std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[MAX_NUM_HANDS];
@@ -632,7 +635,7 @@ osg::Node* CreateFontData(const int & ind) {
 	// テキストを生成する
 	osgText::Text* text = new osgText::Text();
 	text->setAlignment(osgText::Text::CENTER_CENTER);
-	text->setAxisAlignment(osgText::Text::XZ_PLANE);
+	text->setAxisAlignment(osgText::Text::SCREEN);
 	text->setFont(font);
 	text->setColor(osg::Vec4f(1.0f,1.0f,0.0f,1.0f));
 	text->setFontResolution(300,300);
@@ -656,8 +659,8 @@ void osgAddObjectNode(osg::Node* n) {
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 			));
 		obj_transform_array.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
-//		obj_transform_array.at(index)->setNodeMask(castShadowMask );
-		obj_transform_array.at(index)->setNodeMask(rcvShadowMask );
+		obj_transform_array.at(index)->setNodeMask(castShadowMask );
+//		obj_transform_array.at(index)->setNodeMask(rcvShadowMask );
 		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
 		shadowedScene->addChild( obj_transform_array.at(index) );
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
@@ -668,6 +671,8 @@ void osgAddObjectNode(osg::Node* n) {
 		obj_fonts_array.at(index)->addChild(CreateFontData(index));
 		shadowedScene->addChild( obj_fonts_array.at(index) );
 		obj_fonts_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+
+		objectIndex++;
 
 		printf("Client Object number: %d added \n", index+1);
 }
@@ -712,10 +717,8 @@ void osg_createHand(int index, float world_scale, float ratio)
 			shape->setColor( osg::Vec4(1.0, 1.0, 0, 0.2) );
 			osg::ref_ptr< osg::Geode> geode = new osg::Geode();
 			geode->addDrawable( shape.get() );
-
 			// register hand's index
 			hand_object_transform_array[index].push_back(new osg::PositionAttitudeTransform());
-
 			int curr = hand_object_transform_array[index].size()-1;
 
 			//set hand's attributes
@@ -728,6 +731,7 @@ void osg_createHand(int index, float world_scale, float ratio)
 		}
 	}
 	hand_object_global_array.at(index)->setPosition(osg::Vec3d(0,0,0));
+	hand_object_global_array.at(index)->setNodeMask(castShadowMask); // added by Atsushi 2012/06/06
 	shadowedScene->addChild( hand_object_global_array.at(index) );
 
 	//set rendering order
@@ -744,6 +748,13 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 		for(int j = 0; j < MIN_HAND_PIX; j++) {
 			int curr = i*MIN_HAND_PIX + j;
 			if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
+
+				if(!handAppear){
+					//cout << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
+					objectIndex += MIN_HAND_PIX*MIN_HAND_PIX;
+					handAppear = true;
+				}
+
 				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
 			}
 			else
@@ -761,8 +772,8 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 				int curr = i*MIN_HAND_PIX + j;
 				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
 //					cout << id << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
-					obj_transform_array.at( collisionIdx )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
-					obj_transform_array.at( collisionIdx )->setAttitude(obj_transform_array.at( collisionIdx  )->getAttitude());
+					obj_transform_array.at( collidedNodeInd )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
+					obj_transform_array.at( collidedNodeInd )->setAttitude(obj_transform_array.at( collidedNodeInd  )->getAttitude());
 					return;
 				}
 			}

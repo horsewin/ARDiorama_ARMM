@@ -33,7 +33,7 @@
 
 //Keyboard controller
 
-#include "ARMM/KeyboardControls_client.h"
+#include "ARMM/KeyboardControlls_client.h"
 
 #include <stdio.h>
 
@@ -48,7 +48,7 @@ namespace ARMM{
 	bool running = true;
 
 	bool collide[2];
-	int	  objCollision;
+	int	  collisionInd;
 	float pCollision[3];
 	//these coord are considered as Bullet coord
 	//so you have to correct to use in OSG coord
@@ -319,7 +319,7 @@ namespace ARMM{
 			}
 			if( t.quat[0] > 0.5) collide[0] = true;		// flag whether collide or not
 			if( t.quat[1] > 0.5) collide[1] = true;		// flag whether collide or not
-			objCollision = static_cast<int>( t.quat[2]);  //meaning index of a collided object
+			collisionInd = static_cast<int>( t.quat[2]);  //meaning index of a collided object
 		}
 		//----->Receive objects info
 		else{
@@ -404,14 +404,16 @@ namespace ARMM{
 
 			// set a created hand to the graphics tree
 			kc->set_input(101);
-			collisionIdx = obj_transform_array.size() - 1;
-			cout << "Collision Index = " << collisionIdx << endl;
+			collidedNodeInd = obj_transform_array.size() - 1;
+			cout << "Collided node index = " << collidedNodeInd << endl;
+			cout << "Collided obj  index = " << collisionInd	 << endl;
+			cout << "All of Object index = " << objectIndex  << endl;
 			m_pass = 0;
 		}
 #endif
 	}
 
-	void ARMM::Run( ImageType imRGB)
+/*	void ARMM::Run( ImageType imRGB)
 	{
 
 		IplImage *arImage = capture->getFrame();
@@ -429,7 +431,7 @@ namespace ARMM{
 			m_pass = 0;
 		}
 		#endif
-	}
+	}*/
 
 
 	void ARMM::Init( void ){
@@ -544,6 +546,8 @@ namespace ARMM{
 				obj_node_array.erase(it2);
 				Virtual_Objects_Count--;
 				cout << "Virtual objects LOST : Remain " << Virtual_Objects_Count << endl;
+
+				objectIndex--;
 			}
 			obj_ind.clear();
 		}

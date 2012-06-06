@@ -1,0 +1,12 @@
+/////////////////////////////
+
+ Log file 
+    Author : Atsushi Umakatsu, Osaka University 
+    E-mail : mamamatz@gmail.com
+    
+///////////
+
+2012/06/06
+KeyboardControlls_client.hのクラス定義を
+KeyboardControlls_client.ccを生成してそちらに移動。
+
