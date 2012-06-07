@@ -58,6 +58,8 @@ const int WINDOW_HEIGHT = 480;
 
 //for virtual hands
 const int MAX_NUM_HANDS = 1;
+const osg::Vec4 HANDSPHERECOLOR(1.0, 1.0, 0, 0.2);
+const osg::Vec4 HANDSPHERECOLLIDECOL(1.0, .0, .0, 1.0);
 
 //for virtual objects
 const int MAX_NUM_VIR_OBJ = 5;
@@ -85,6 +87,7 @@ bool handAppear = false;
 
 std::vector<osg::PositionAttitudeTransform*> hand_object_global_array;
 std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[MAX_NUM_HANDS];
+std::vector<osg::Drawable*> hand_object_drawble_array[MAX_NUM_HANDS];
 
 void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale);
 void osg_setHFNode(osg::Node* n);
@@ -212,7 +215,7 @@ public:
 	osg::Image* mVideoImage;
 	IplImage *mGLImage;
 	bool captureFrame();
-	osg::ref_ptr<ARTrackedNode> arTrackedNode; 
+	osg::ref_ptr<ARTrackedNode> arTrackedNode;
 	osg::ref_ptr<osg::Node> HFNode;
 	//std::vector<osg::ref_ptr<osg::Node>> world_sphere_array;
 
@@ -234,6 +237,7 @@ public:
 
 	std::vector<osg::ref_ptr<osg::Node> > obj_node_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_transform_array;
+	//	std::vector<osg::Drawable *> obj_d_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_fonts_array;
 
 	std::vector<osg::PositionAttitudeTransform*> world_sphere_transform_array;
@@ -714,8 +718,11 @@ void osg_createHand(int index, float world_scale, float ratio)
 			//create a part of hands 
 			osg::ref_ptr< osg::Sphere > sphere = new osg::Sphere(osg::Vec3d(0,0,0), sphere_size);
 			osg::ref_ptr< osg::ShapeDrawable > shape = new osg::ShapeDrawable( sphere.get() );
+
+			hand_object_drawble_array[0].push_back(shape); //reserve a drawable object
+
 			shape->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-			shape->setColor( osg::Vec4(1.0, 1.0, 0, 0.2) );
+			shape->setColor(HANDSPHERECOLOR);
 			osg::ref_ptr< osg::Geode> geode = new osg::Geode();
 			geode->addDrawable( shape.get() );
 			// register hand's index
@@ -772,9 +779,21 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 			for(int j = 0; j < MIN_HAND_PIX; j++) {
 				int curr = i*MIN_HAND_PIX + j;
 				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
+
+					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
+					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
+					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
+					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
+//					if ( colorArrays ) {
+//						cerr << "Geode OKay" << endl;
+//
+//					}else{
+//						cerr << "Geode Error" << endl;
+//					}
 //					cout << id << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
 					obj_transform_array.at( collidedNodeInd )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
 					obj_transform_array.at( collidedNodeInd )->setAttitude(obj_transform_array.at( collidedNodeInd  )->getAttitude());
+
 					return;
 				}
 			}

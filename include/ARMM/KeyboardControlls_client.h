@@ -142,7 +142,6 @@ public:
 				int ind = objectIndex - collisionInd;
 				int childInd = obj_transform_array[ind]->getChildIndex(obj_node_array[ind]); //子ノードのインデックスを取得
 				obj_transform_array[ind]->setChild(childInd, osgSphereNode(5));				//子ノードを別のノードでセットしなおす
-
 				break;
 			}
 			//衝突判定があった後、手に追従させるテクスチャを生成
