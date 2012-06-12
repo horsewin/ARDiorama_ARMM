@@ -10,3 +10,7 @@
 KeyboardControlls_client.hのクラス定義を
 KeyboardControlls_client.ccを生成してそちらに移動。
 
+2012/06/07
+Collision Detectionの問題を発見。
+3DSファイルを読んだときに設定するbulletのcollision bounding boxがおかしいのが原因。
+mesh integration->vertex reduction->collision mesh creationの手順で解決するのがスマート？

@@ -40,9 +40,12 @@ private:
 #include "opencv/cv.h"
 
 int	  collisionInd;
+int	  collisionInd2;
 
 extern int collide_counter;
 extern double prev_collide_clock;
+extern int collidedNodeInd;
+
 const float CUBE_SIZE = 4;
 const float SPHERE_SIZE = 2;//FULL SIZE
 
@@ -87,24 +90,27 @@ public:
 				break;
 
 			case 79: {//o
-				const char * str = "TextureTransfer/Model3DS//HatuneMiku.3ds";
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
-				LoadCheck(obj.get(), str);
-
-				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-				double scale = 1.61828; //サーバ側の値から決定した
-				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
-				obj_pat->setAttitude(osg::Quat(
-					osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
-					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
-					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
-					));
-				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-				obj_pat->addChild(obj);
-
-				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
-//				osgAddObjectNode(osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds"));
+//				const char * str = "TextureTransfer/Model3DS//HatuneMiku.3ds";
+//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
+//				LoadCheck(obj.get(), str);
+//
+//				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
+//				double scale = 1.61828; //サーバ側の値から決定した
+//				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
+//				obj_pat->setAttitude(osg::Quat(
+//					osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
+//					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+//					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
+//					));
+//				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
+//				obj_pat->addChild(obj);
+//
+//				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
+////				osgAddObjectNode(osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds"));
+//				Virtual_Objects_Count++;
+				osgAddObjectNode(osgBoxNode(CUBE_SIZE));
 				Virtual_Objects_Count++;
+
 				break;
 			}
 
@@ -138,6 +144,13 @@ public:
 
 			case 100: {//衝突判定のけーすとして用いる
 
+				//remove the texture image object
+				vector<osg::PositionAttitudeTransform*>::iterator it = obj_transform_array.begin() + collidedNodeInd;
+				vector<osg::ref_ptr<osg::Node> >::iterator it2 = obj_node_array.begin() + collidedNodeInd;
+				shadowedScene->removeChild(obj_transform_array.at(collidedNodeInd));
+				obj_transform_array.erase(it);
+				obj_node_array.erase(it2);
+
 				//Operation
 				int ind = objectIndex - collisionInd;
 				int childInd = obj_transform_array[ind]->getChildIndex(obj_node_array[ind]); //子ノードのインデックスを取得
@@ -147,7 +160,7 @@ public:
 			//衝突判定があった後、手に追従させるテクスチャを生成
 			case 101: {
 
-				//re-create new node
+				//parts node
 				const char * str = "ARMM/Data/rec/NewTorus.3ds";
 				osg::ref_ptr<osg::Node> obj = osgTexture(str);
 				LoadCheck(obj.get(), str);
@@ -165,6 +178,7 @@ public:
 
 				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
 				cout << "<<Create a texture image with ocurring collision>>" << endl;
+
 				break;
 			}
 

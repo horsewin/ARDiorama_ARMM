@@ -46,8 +46,13 @@ namespace ARMM{
 	//---------------------------------------------------------------------------
 	bool running = true;
 
-	bool collide[2];
+	bool stroke;
+	bool touch;
 	float pCollision[3];
+	int transfer;
+
+	osgText::Text * fontText;
+
 	//these coord are considered as Bullet coord
 	//so you have to correct to use in OSG coord
 	float hand_coord_x[MAX_NUM_HANDS][HAND_GRID_SIZE];
@@ -304,21 +309,26 @@ namespace ARMM{
 				WheelsArrayQuat[j][k]= osg::Quat((float) t.quat[0], (float) t.quat[1], (float) t.quat[2], (float) t.quat[3]);
 			}
 		}
+
 		//----->Keyboard input checker
 		else if( t.sensor == CAR_PARAM){
 			if ( static_cast<int>(t.pos[0]) != 0){
 				m_pass = static_cast<int>(t.pos[0]);
 			}
 		}
+
 		//----->Collision checker
 		else if( t.sensor > CAR_PARAM && t.sensor <= COLLISION_PARAM){
 			REP(p,3){
 				pCollision[p] = (float)t.pos[p];			// the position of collision
 			}
-			if( t.quat[0] > 0.5) collide[0] = true;		// flag whether collide or not
-			if( t.quat[1] > 0.5) collide[1] = true;		// flag whether collide or not
+			if( t.quat[0] > 0.5) stroke = true;		// flag whether stroke on or off
+			else					stroke = false;
+			if( t.quat[1] > 0.5) touch  = true;		// flag whether touch on or off
+			else					touch  = false;
 			collisionInd = static_cast<int>( t.quat[2]);  //meaning index of a collided object
 		}
+
 		//----->Receive objects info
 		else{
 			int index = t.sensor - (CAR_PARAM  + 1);
@@ -364,6 +374,10 @@ namespace ARMM{
 #endif
 	{
 		Init();
+
+		collisionInd  = -1;
+		collisionInd2 = -1;
+		transfer = 0;
 	}
 
 	ARMM::~ARMM(){
@@ -392,15 +406,20 @@ namespace ARMM{
 			kc->set_input(m_pass);
 			m_pass = 0;
 		}
-		if(collide[0] && collide[1] && !collision){
-			collide[0] = false;
-			collide[1] = false;
+
+		DecideCollisionCondition();
+
+		if( touch && !collision)
+		{
 
 			collision = true;
 
 			cout << "Collided obj  index = " << collisionInd	 << endl;
 			cout << "All of Object index = " << objectIndex  << endl;
-			kc->set_input(100);
+			int ind = objectIndex - collisionInd;
+			osg::Geode * fontGeode = obj_fonts_array[ind]->getChild(0)->asGeode();
+			fontText = dynamic_cast< osgText::Text* >(fontGeode->getDrawable(0));
+			fontText->setText("TOUCH!!");
 
 			// set a created hand to the graphics tree
 			kc->set_input(101);
@@ -410,6 +429,17 @@ namespace ARMM{
 			cout << "Collided node index = " << collidedNodeInd << endl;
 
 		}
+
+		if(transfer == 1){
+			transfer = 2; //this value means texture have been already transferred
+			kc->set_input(100); //swap the collided object
+
+			fontText->setText("");
+
+			int ind = objectIndex - collisionInd;
+			GetCollisionCoordinate(ind);
+		}
+
 #endif
 	}
 
@@ -559,9 +589,58 @@ namespace ARMM{
 //
 //		osg::Matrixd 	projMatrix = camera->getProjectionMatrix();
 //		osg::Matrixd	viewMatrix = camera->getViewMatrix();
-		osg::Matrix	modelMatrix = obj_transform_array[index]->asMatrixTransform()->getMatrix();
+		osg::Quat  rotate = obj_transform_array[index]->getAttitude();
+		osg::Vec3d trans  = obj_transform_array[index]->getPosition();
 
+		if(true){
+			osg::Matrix	*modelMatrix = new osg::Matrix;
+
+			modelMatrix->setTrans(trans);
+			modelMatrix->setRotate(rotate);
+			osg::Matrix	modelInverseMatrix = modelMatrix->inverse(*modelMatrix);
+
+			osg::Vec4d		posCollision;
+			REP(i,3) posCollision[i] = pCollision[i];
+			posCollision[3] = 1;
+
+			osg::Vec4d		posCollisionLocal = posCollision * (modelInverseMatrix);
+
+			cout << "PosCollision in World coordinate -> " << posCollision << endl;
+			cout << "PosCollision in Local coordinate -> " << posCollisionLocal << endl;
+
+		}else{
+			cerr << "No matrix in model" << endl;
+		}
 	}
+	void ARMM::DecideCollisionCondition()
+	{
+		if( touch ) //touch = true
+		{
+			if(stroke)
+			{
+//				cout << " Collision with " << collisionInd << " in "
+//	          << pCollision[0] << ","
+//	          << pCollision[1] << ","
+//	          << pCollision[2] << ","
+//	          << endl;
+				collisionInd2 = collisionInd; //collisionInd2 indicates the collided object in previous frame
+			}
+			else
+			{
+				if( collisionInd == collisionInd2){
+//					cout << " Collision with " << collisionInd << " with parts" << endl;
+				}
+				else
+				{
+//					cout << " Collision with " << collisionInd << " and finished transfer from " << collisionInd2 << endl;
+					if(transfer == 0 ) transfer = 1;
+				}
+	        }
+	      return;
+	    }
+	}
+
+
 
 }/*  Endf of Namespace ARMM */
 

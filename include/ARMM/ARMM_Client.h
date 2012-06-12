@@ -95,6 +95,7 @@ namespace ARMM{
 		void RenderScene(IplImage *arImage, CvMat * distortion);
 		void DeleteLostObject( void );
 		void GetCollisionCoordinate(const int & index);
+		void DecideCollisionCondition();
 
 	private:
 		ARMMClient * armm_client;

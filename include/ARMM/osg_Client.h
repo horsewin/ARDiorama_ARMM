@@ -58,8 +58,8 @@ const int WINDOW_HEIGHT = 480;
 
 //for virtual hands
 const int MAX_NUM_HANDS = 1;
-const osg::Vec4 HANDSPHERECOLOR(1.0, 1.0, 0, 0.2);
-const osg::Vec4 HANDSPHERECOLLIDECOL(1.0, .0, .0, 1.0);
+const osg::Vec4 HANDSPHERECOLOR(1.0, 1.0, 0, 0.0);
+const osg::Vec4 HANDSPHERECOLLIDECOL(1.0, 1.0, .0, 1.0);
 
 //for virtual objects
 const int MAX_NUM_VIR_OBJ = 5;
@@ -80,8 +80,10 @@ int Virtual_Objects_Count = 0;
 vector<int> obj_ind;//to remove a lost object
 int objectIndex = 2; // 2 car is in world
 
-bool collision = false;
 int  collidedNodeInd = 0;
+bool stroke = false;
+bool touch = false;
+bool collision = false;
 
 bool handAppear = false;
 
@@ -647,10 +649,10 @@ osg::Node* CreateFontData(const int & ind) {
 	stringstream ss;
 	ss << ind;
 	text->setText(ss.str());
-	osg::Geode* textGeode = new osg::Geode();
+	osg::ref_ptr<osg::Geode> textGeode = new osg::Geode();
 	textGeode->addDrawable(text);
 
-	return textGeode;
+	return textGeode.release();
 }
 
 void osgAddObjectNode(osg::Node* n) {
@@ -665,7 +667,7 @@ void osgAddObjectNode(osg::Node* n) {
 			));
 		obj_transform_array.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
 		obj_transform_array.at(index)->setNodeMask(castShadowMask );
-//		obj_transform_array.at(index)->setNodeMask(rcvShadowMask );
+
 		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
 		shadowedScene->addChild( obj_transform_array.at(index) );
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
@@ -683,8 +685,9 @@ void osgAddObjectNode(osg::Node* n) {
 }
 
 void osgAddCollisionObjectNode(osg::Node* n) {
-		obj_node_array.push_back(n);
+		n->getOrCreateStateSet()->setRenderBinDetails(2,"RenderBin");
 
+		obj_node_array.push_back(n);
 		obj_transform_array.push_back(new osg::PositionAttitudeTransform());
 		int index = obj_node_array.size()-1;
 		obj_transform_array.at(index)->setAttitude(osg::Quat(
@@ -703,6 +706,7 @@ void osgAddCollisionObjectNode(osg::Node* n) {
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 }
+
 //----->Hand creating and updating
 void osg_createHand(int index, float world_scale, float ratio) 
 {
@@ -758,7 +762,6 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 			if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
 
 				if(!handAppear){
-					//cout << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
 					objectIndex += MIN_HAND_PIX*MIN_HAND_PIX;
 					handAppear = true;
 				}
@@ -778,19 +781,15 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 		for(int i = 0; i < MIN_HAND_PIX; i++) {
 			for(int j = 0; j < MIN_HAND_PIX; j++) {
 				int curr = i*MIN_HAND_PIX + j;
-				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
 
+				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION )
+				{
+//					cout << "Finger : " << x[curr]*scale << "," << y[curr]*scale << "," << grid[curr]*scale << endl;
 					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
 					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
 					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
 					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
-//					if ( colorArrays ) {
-//						cerr << "Geode OKay" << endl;
-//
-//					}else{
-//						cerr << "Geode Error" << endl;
-//					}
-//					cout << id << " : " << osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale) << endl;
+
 					obj_transform_array.at( collidedNodeInd )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
 					obj_transform_array.at( collidedNodeInd )->setAttitude(obj_transform_array.at( collidedNodeInd  )->getAttitude());
 
