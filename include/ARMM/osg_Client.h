@@ -650,7 +650,8 @@ osg::Node* CreateFontData(const int & ind) {
 	text->setFontResolution(300,300);
 	stringstream ss;
 	ss << ind;
-	text->setText(ss.str());
+//	text->setText(ss.str());
+	text->setText("");
 	osg::ref_ptr<osg::Geode> textGeode = new osg::Geode();
 	textGeode->addDrawable(text);
 

@@ -136,7 +136,7 @@ public:
 
 				//Operation
 	//			int ind = objectIndex - collisionInd;
-				cout << collidedNodeInd << endl;
+				cout << "collidedNodeInd=" << collidedNodeInd << endl;
 				int childInd = obj_transform_array[collidedNodeInd]
 				               ->getChildIndex(obj_node_array[collidedNodeInd]); //子ノードのインデックスを取得
 				obj_transform_array[collidedNodeInd]->setChild

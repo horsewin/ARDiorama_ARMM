@@ -413,7 +413,9 @@ namespace ARMM{
 		if(transfer == 1){
 			transfer = 2; //this value means texture have been already transferred
 
-//			int ind = objectIndex - collisionInd;
+//			cout << "Last Collided obj  index = " << collisionInd	 << endl;
+//			cout << "All of Object index = " << objectIndex  << endl;
+			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
 //			GetCollisionCoordinate(collidedNodeInd);
 			fontText->setText("");
 
