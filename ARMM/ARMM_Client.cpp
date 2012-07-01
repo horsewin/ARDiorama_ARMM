@@ -83,7 +83,7 @@ namespace ARMM{
 	// Constant/Define
 	//---------------------------------------------------------------------------
 	const float OSG_SCALE = 10;
-	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.104"; //this value depends on IP address assigned computer
+	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.131"; //this value depends on IP address assigned computer
 
 	//---------------------------------------------------------------------------
 	// Code
@@ -318,7 +318,7 @@ namespace ARMM{
 		}
 
 		//----->Collision checker
-		else if( t.sensor > CAR_PARAM && t.sensor <= COLLISION_PARAM){
+		else if( t.sensor > CAR_PARAM && t.sensor < COLLISION_PARAM){
 			REP(p,3){
 				pCollision[p] = (float)t.pos[p];			// the position of collision
 			}
@@ -331,10 +331,11 @@ namespace ARMM{
 
 		//----->Receive objects info
 		else{
-			int index = t.sensor - (CAR_PARAM  + 1);
+			int index = t.sensor - COLLISION_PARAM;
 			ObjectsArrayPos[index].set(  osg::Vec3d((float)t.pos[0]*OSG_SCALE , (float)t.pos[1]*OSG_SCALE , (float)t.pos[2]*OSG_SCALE));
 			osg::Quat quat = osg::Quat((double)t.quat[0]*OSG_SCALE, (double)t.quat[1]*OSG_SCALE, (double)t.quat[2]*OSG_SCALE, (double)t.quat[3]*OSG_SCALE);
 			ObjectsArrayQuat[index].set(quat.x(), quat.y(), quat.z(), quat.w());
+//			printf("(%f,%f,%f)\n",(float)t.pos[0]*OSG_SCALE , (float)t.pos[1]*OSG_SCALE , (float)t.pos[2]*OSG_SCALE);
 		}
 	}
 	void VRPN_CALLBACK handle_hands (void * userData, const vrpn_TRACKERHANDCB h)
@@ -409,35 +410,14 @@ namespace ARMM{
 
 		DecideCollisionCondition();
 
-		if( touch && !collision)
-		{
-
-			collision = true;
-
-			cout << "Collided obj  index = " << collisionInd	 << endl;
-			cout << "All of Object index = " << objectIndex  << endl;
-			int ind = objectIndex - collisionInd;
-			osg::Geode * fontGeode = obj_fonts_array[ind]->getChild(0)->asGeode();
-			fontText = dynamic_cast< osgText::Text* >(fontGeode->getDrawable(0));
-			fontText->setText("TOUCH!!");
-
-			// set a created hand to the graphics tree
-			kc->set_input(101);
-
-			m_pass = 0;
-			collidedNodeInd = obj_transform_array.size() - 1;
-			cout << "Collided node index = " << collidedNodeInd << endl;
-
-		}
-
 		if(transfer == 1){
 			transfer = 2; //this value means texture have been already transferred
-			kc->set_input(100); //swap the collided object
 
+//			int ind = objectIndex - collisionInd;
+//			GetCollisionCoordinate(collidedNodeInd);
 			fontText->setText("");
 
-			int ind = objectIndex - collisionInd;
-			GetCollisionCoordinate(ind);
+			kc->set_input(100); //swap the collided object
 		}
 
 #endif
@@ -523,7 +503,7 @@ namespace ARMM{
 	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmpGeo->getTexCoordArray(0);
 	//	cout << "Texture size = " << texcoords->size() << endl;
 	}
-		#ifdef SIM_MICROMACHINE
+	#ifdef SIM_MICROMACHINE
 		if(Virtual_Objects_Count > 0) {
 
 			DeleteLostObject();
@@ -585,14 +565,16 @@ namespace ARMM{
 
 	void ARMM::GetCollisionCoordinate(const int & index)
 	{
-//		osg::Camera* camera = viewer.getCamera();
-//
-//		osg::Matrixd 	projMatrix = camera->getProjectionMatrix();
-//		osg::Matrixd	viewMatrix = camera->getViewMatrix();
 		osg::Quat  rotate = obj_transform_array[index]->getAttitude();
 		osg::Vec3d trans  = obj_transform_array[index]->getPosition();
+		osg::Vec3d scale  = obj_transform_array[index]->getScale();
+		osg::Quat	 scale_4;
+		scale_4.set(osg::Vec4d(scale.x(), scale.y(), scale.z(), 1));
 
-		if(true){
+		cout << scale_4 << endl;
+		rotate = rotate * 1/scale_4.x();
+
+		if(false){
 			osg::Matrix	*modelMatrix = new osg::Matrix;
 
 			modelMatrix->setTrans(trans);
@@ -603,7 +585,7 @@ namespace ARMM{
 			REP(i,3) posCollision[i] = pCollision[i];
 			posCollision[3] = 1;
 
-			osg::Vec4d		posCollisionLocal = posCollision * (modelInverseMatrix);
+			osg::Vec4d		posCollisionLocal = (modelInverseMatrix) * posCollision;
 
 			cout << "PosCollision in World coordinate -> " << posCollision << endl;
 			cout << "PosCollision in Local coordinate -> " << posCollisionLocal << endl;
@@ -627,8 +609,27 @@ namespace ARMM{
 			}
 			else
 			{
-				if( collisionInd == collisionInd2){
-//					cout << " Collision with " << collisionInd << " with parts" << endl;
+				if( collisionInd == collisionInd2)
+				{
+					if( touch && !collision)
+					{
+
+						collision = true;
+
+						cout << "Collided obj  index = " << collisionInd	 << endl;
+						cout << "All of Object index = " << objectIndex  << endl;
+						int ind = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
+						osg::Geode * fontGeode = obj_fonts_array[ind]->getChild(0)->asGeode();
+						fontText = dynamic_cast< osgText::Text* >(fontGeode->getDrawable(0));
+						fontText->setText("TOUCH!!");
+
+						// set a created hand to the graphics tree
+						kc->set_input(101);
+
+						m_pass = 0;
+						collidedNodeInd = ind;
+					}
+					//					cout << " Collision with " << collisionInd << " with parts" << endl;
 				}
 				else
 				{

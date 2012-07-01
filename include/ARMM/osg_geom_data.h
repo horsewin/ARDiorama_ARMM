@@ -248,7 +248,6 @@ osg::Node* osgTexture(const char * file)
 			{
 				// Get the index for each point of the face
 				int index = mesh->faces[(*Iter)].index[vv];
-				int SCALE = 150;
 				vertices->push_back( osg::Vec2(mesh->texcos[index][0], 1 - mesh->texcos[index][1]));
 				faceArray->push_back(id++);
 				texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1 - mesh->texcos[index][1])); // caution to texture coordinate
@@ -281,7 +280,7 @@ osg::Node* osgTexture(const char * file)
 
 }
 
-osg::Node* osg3DSFileFromDiorama( const char* file)
+osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 {
 	//open 3ds file
 	Lib3dsFile * model = lib3ds_file_open(file);
@@ -366,22 +365,36 @@ osg::Node* osg3DSFileFromDiorama( const char* file)
 		id = 0;
 
 		// Acquire a texture name
-		std::string tex_file = "ARMM/Data/rec/";
+		std::string tex_file;
+		if(dir)
+		{
+			tex_file = dir;
+		}
+		else
+		{
+			tex_file = "ARMM/Data/rec/";
+		}
 		tex_file += model->materials[nm]->texture1_map.name;
 //		osg::ref_ptr<osg::TextureRectangle> texture = 0;
 		osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
 
 		// Activate texture
-		if (!tex_file.empty()) {
+		if (!tex_file.empty())
+		{
 			//loading texture image object
 			osg::ref_ptr<osg::Image> image (osgDB::readImageFile(tex_file.c_str()));
-			if(!image->valid()){
+			if(!image->valid())
+			{
 				std::cerr << "Error in osgDB::readImageFile -> " << tex_file.c_str() << std::endl;
-			}else{
+			}
+			else
+			{
 				texture->setImage(image.get());
 			}
 			texture->setUnRefImageDataAfterApply(false);
-		}else{
+		}
+		else
+		{
 			std::cout << "Default " << nm << std::endl;
 		}
 
@@ -399,6 +412,7 @@ osg::Node* osg3DSFileFromDiorama( const char* file)
 				{
 					// Get the index for each point of the face
 					int index = mesh->faces[(*Iter)].index[vv];
+//					cout << mesh->vertices[index][0] << "," << mesh->vertices[index][1] << "," << mesh->vertices[index][2] << endl;
 					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
 					faceArray->push_back(id++);
 					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1 - mesh->texcos[index][1])); // caution to texture coordinate
@@ -410,27 +424,13 @@ osg::Node* osg3DSFileFromDiorama( const char* file)
 		osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
 		geometry->setVertexArray(vertices.get());
 		geometry->addPrimitiveSet(faceArray.get());
-//		osgUtil::SmoothingVisitor::smooth (*geometry);
 		geometry->setTexCoordArray(0, texcoords.get());
-//		cout << "Texture size(in loader) = " << texcoords->size() << endl;
-
-		//		geometry->setNormalArray(normalArray);
-		//		geometry->setNormalIndices(normalIndexArray);
-		//		geometry->setNormalBinding(osg::Geometry::BIND_PER_VERTEX);
-
-//	   osg::ref_ptr<osg::Vec3Array> normals (new osg::Vec3Array());
-//	   normals->push_back (osg::Vec3 (0.0f, -1.0f, 0.0f));
-//	   geometry->setNormalArray (normals.get());
-//	   geometry->setNormalBinding (osg::Geometry::BIND_OVERALL);
 
 		osg::ref_ptr<osg::Geode> geode= new osg::Geode;
 
 		// Assign texture unit 0 of our new StateSet to the texture
 		// we just created and enable the texture.
 		osg::ref_ptr<osg::StateSet> state_geode = new osg::StateSet;
-//		texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-//		texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-//		texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::NEAREST);
 		state_geode->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
 		state_geode->setMode(GL_LIGHTING, GL_FALSE);
 		state_geode->setMode(GL_DEPTH_TEST, GL_FALSE); // if do not use this, there is something wrong for texture mapping

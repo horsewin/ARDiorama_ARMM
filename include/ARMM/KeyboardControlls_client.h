@@ -90,48 +90,34 @@ public:
 				break;
 
 			case 79: {//o
-//				const char * str = "TextureTransfer/Model3DS//HatuneMiku.3ds";
-//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
-//				LoadCheck(obj.get(), str);
-//
-//				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-//				double scale = 1.61828; //サーバ側の値から決定した
-//				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
-//				obj_pat->setAttitude(osg::Quat(
-//					osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
-//					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
-//					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
-//					));
-//				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-//				obj_pat->addChild(obj);
-//
-//				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
-////				osgAddObjectNode(osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds"));
-//				Virtual_Objects_Count++;
-				osgAddObjectNode(osgBoxNode(CUBE_SIZE));
-				Virtual_Objects_Count++;
+				const char * str = "ARMM/Data/rec/NewTorus.3ds";
+				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
+				LoadCheck(obj.get(), str);
 
+				double scale = 80.1812; //サーバ側の値から決定した for Torus
+//				double scale = 1.61828; //サーバ側の値から決定した for MIKU
+				osgAddObjectNode(obj.get(), scale);
+				Virtual_Objects_Count++;
 				break;
 			}
 
 			case 80: {//p
-				const char * str = "ARMM/Data/rec/NewTorus.3ds";
-				osg::ref_ptr<osg::Node> obj = osg3DSFileFromDiorama(str);
+				const char * str = "ARMM/Data/rec2/NewModel.3ds";
+				osg::ref_ptr<osg::Node> obj = osg3DSFileFromDiorama(str, "ARMM/Data/rec2/");
 				LoadCheck(obj.get(), str);
 
+				double scale = 80.15; //サーバ側の値から決定した for cow
+
 				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-				double scale = 80.1812; //サーバ側の値から決定した for Torus
-//				double scale = 1.5; //サーバ側の値から決定した
 				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
 				obj_pat->setAttitude(osg::Quat(
-					osg::DegreesToRadians(0.0f), osg::Vec3d(1.0, 0.0, 0.0),
-					osg::DegreesToRadians(0.0f), osg::Vec3d(0.0, 1.0, 0.0),
-					osg::DegreesToRadians(180.f), osg::Vec3d(0.0, 0.0, 1.0)
+					osg::DegreesToRadians(90.f), osg::Vec3d(1.0, 0.0, 0.0),
+					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+					osg::DegreesToRadians(90.f), osg::Vec3d(0.0, 0.0, 1.0)
 					));
 				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
 				obj_pat->addChild(obj);
 
-				//re-create new node
 				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
 				Virtual_Objects_Count++;
 				break;
@@ -142,19 +128,28 @@ public:
 			case 83:
 				break;
 
-			case 100: {//衝突判定のけーすとして用いる
+			case 100: {// This function is called after texture transferred
 
 				//remove the texture image object
-				vector<osg::PositionAttitudeTransform*>::iterator it = obj_transform_array.begin() + collidedNodeInd;
-				vector<osg::ref_ptr<osg::Node> >::iterator it2 = obj_node_array.begin() + collidedNodeInd;
-				shadowedScene->removeChild(obj_transform_array.at(collidedNodeInd));
-				obj_transform_array.erase(it);
-				obj_node_array.erase(it2);
+				shadowedScene->removeChild(objTexture);
+				obj_texture->removeChild(objTexture);
 
 				//Operation
-				int ind = objectIndex - collisionInd;
-				int childInd = obj_transform_array[ind]->getChildIndex(obj_node_array[ind]); //子ノードのインデックスを取得
-				obj_transform_array[ind]->setChild(childInd, osgSphereNode(5));				//子ノードを別のノードでセットしなおす
+	//			int ind = objectIndex - collisionInd;
+				cout << collidedNodeInd << endl;
+				int childInd = obj_transform_array[collidedNodeInd]
+				               ->getChildIndex(obj_node_array[collidedNodeInd]); //子ノードのインデックスを取得
+				obj_transform_array[collidedNodeInd]->setChild
+				(childInd, osg3DSFileFromDiorama("ARMM/Data/rec/NewModel.3ds"));				//子ノードを別のノードでセットしなおす
+				double s = 80.15;
+				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(s,s,s));
+				obj_transform_array[collidedNodeInd]->setAttitude(osg::Quat(
+						osg::DegreesToRadians(90.f), osg::Vec3d(1.0, 0.0, 0.0),
+						osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+						osg::DegreesToRadians(90.f), osg::Vec3d(0.0, 0.0, 1.0)
+				));
+
+				collision = false;
 				break;
 			}
 			//衝突判定があった後、手に追従させるテクスチャを生成
@@ -162,8 +157,8 @@ public:
 
 				//parts node
 				const char * str = "ARMM/Data/rec/NewTorus.3ds";
-				osg::ref_ptr<osg::Node> obj = osgTexture(str);
-				LoadCheck(obj.get(), str);
+				objTexture = osgTexture(str);
+				LoadCheck(objTexture.get(), str);
 
 				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
 				double scale = 81.1812; //サーバ側の値から決定した
@@ -174,9 +169,12 @@ public:
 					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 					));
 				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-				obj_pat->addChild(obj);
+				obj_pat->addChild(objTexture);
 
-				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
+				obj_texture = obj_pat;
+				shadowedScene->addChild(obj_texture);
+				obj_texture->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+
 				cout << "<<Create a texture image with ocurring collision>>" << endl;
 
 				break;

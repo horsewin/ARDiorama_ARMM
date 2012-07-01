@@ -288,7 +288,7 @@ CvMat* findTransform(vector<CvPoint3D32f> source, vector<CvPoint3D32f> target)
 
   // Original python implementation by David G. Gobbi
 
-  const int N_PTS = source.size();
+  const unsigned int N_PTS = source.size();
   if(N_PTS != target.size())
     {
     printf("Update: Source and Target Landmarks contain a different number of points\n");
@@ -307,7 +307,7 @@ CvMat* findTransform(vector<CvPoint3D32f> source, vector<CvPoint3D32f> target)
   CvPoint3D32f source_centroid=cvPoint3D32f(0,0,0);
   CvPoint3D32f target_centroid=cvPoint3D32f(0,0,0);
   CvPoint3D32f p;
-  for(int i=0;i<N_PTS;i++)
+  for(unsigned int i=0;i<N_PTS;i++)
     {
     p = source.at(i);
     source_centroid.x += p.x;
@@ -348,7 +348,7 @@ CvMat* findTransform(vector<CvPoint3D32f> source, vector<CvPoint3D32f> target)
 
   float sa=0.0F,sb=0.0F;
   
-  for(int pt=0;pt<N_PTS;pt++)
+  for(unsigned int pt=0;pt<N_PTS;pt++)
     {
 		CvPoint3D32f a,b;
 		// get the origin-centred point (a) in the source set

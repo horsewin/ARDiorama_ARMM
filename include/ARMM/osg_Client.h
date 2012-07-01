@@ -242,6 +242,9 @@ public:
 	//	std::vector<osg::Drawable *> obj_d_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_fonts_array;
 
+	osg::ref_ptr<osg::Node> objTexture;
+	osg::ref_ptr<osg::PositionAttitudeTransform> obj_texture;
+
 	std::vector<osg::PositionAttitudeTransform*> world_sphere_transform_array;
 
 	vector<CvPoint3D32f> carRect;
@@ -354,12 +357,11 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 
 	//Addition node to Tree
 	//test to apply a Geode object for a Node object
-	model3ds = osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds");
 
 //	car_trans1->setScale(osg::Vec3d(200,200,200));
 	double scale = 80.1812; //サーバ側の値から決定した
 	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
-	car_trans1->addChild(model3ds);
+	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds"));
 //	car_trans1->addChild(createCube());
 //	car_trans1->addChild(car1.get()); // car version
 
@@ -594,7 +596,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 
 	//virtual objects part
 	for(uint i = 0; i < v_array.size(); i++) {
-		obj_transform_array.at(i)->setAttitude(q_array.at(i));
+//		obj_transform_array.at(i)->setAttitude(q_array.at(i));
 		obj_transform_array.at(i)->setPosition(v_array.at(i));
 		obj_fonts_array.at(i)->setPosition(v_array.at(i));
 	}
@@ -670,8 +672,41 @@ void osgAddObjectNode(osg::Node* n) {
 
 		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
 		shadowedScene->addChild( obj_transform_array.at(index) );
-		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
-		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+
+		//for debug
+		obj_fonts_array.push_back(new osg::PositionAttitudeTransform());
+		obj_fonts_array.at(index)->addChild(CreateFontData(index));
+		shadowedScene->addChild( obj_fonts_array.at(index) );
+		obj_fonts_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+
+		objectIndex++;
+
+		printf("Client Object number: %d(ALL=%d) added \n", index+1, objectIndex);
+}
+
+void osgAddObjectNode(osg::Node* n, const double & scale)
+{
+		obj_node_array.push_back(n);
+
+		obj_transform_array.push_back(new osg::PositionAttitudeTransform());
+		int index = obj_node_array.size()-1;
+
+		obj_transform_array.at(index)->setAttitude(osg::Quat(
+			osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
+			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
+			));
+		obj_transform_array.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
+		obj_transform_array.at(index)->setScale(osg::Vec3d(scale,scale,scale));
+
+		obj_transform_array.at(index)->setNodeMask(castShadowMask);
+
+		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
+		shadowedScene->addChild( obj_transform_array.at(index) );
+		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 
 		//for debug
 		obj_fonts_array.push_back(new osg::PositionAttitudeTransform());
@@ -682,29 +717,6 @@ void osgAddObjectNode(osg::Node* n) {
 		objectIndex++;
 
 		printf("Client Object number: %d added \n", index+1);
-}
-
-void osgAddCollisionObjectNode(osg::Node* n) {
-		n->getOrCreateStateSet()->setRenderBinDetails(2,"RenderBin");
-
-		obj_node_array.push_back(n);
-		obj_transform_array.push_back(new osg::PositionAttitudeTransform());
-		int index = obj_node_array.size()-1;
-		obj_transform_array.at(index)->setAttitude(osg::Quat(
-			osg::DegreesToRadians(45.f), osg::Vec3d(1.0, 0.0, 0.0),
-			osg::DegreesToRadians(45.f), osg::Vec3d(0.0, 1.0, 0.0),
-			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
-			));
-
-		obj_transform_array.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
-		obj_transform_array.at(index)->setScale(osg::Vec3d(0.2, 0.2, 0.2));
-		obj_transform_array.at(index)->setNodeMask(rcvShadowMask );
-
-		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
-		shadowedScene->addChild( obj_transform_array.at(index) );
-
-		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
-		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 }
 
 //----->Hand creating and updating
@@ -785,13 +797,13 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION )
 				{
 //					cout << "Finger : " << x[curr]*scale << "," << y[curr]*scale << "," << grid[curr]*scale << endl;
-					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
-					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
-					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
-					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
+//					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
+//					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
+//					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
+//					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
 
-					obj_transform_array.at( collidedNodeInd )->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
-					obj_transform_array.at( collidedNodeInd )->setAttitude(obj_transform_array.at( collidedNodeInd  )->getAttitude());
+					obj_texture->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
+					obj_texture->setAttitude(obj_texture->getAttitude());
 
 					return;
 				}
