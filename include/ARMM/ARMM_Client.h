@@ -61,10 +61,10 @@ namespace ARMM{
 		virtual void mainloop();
 
 		virtual int register_change_handler(void *userdata,
-			  vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 sensor = vrpn_ALL_SENSORS);
+			  vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 whichSensor  = vrpn_ALL_SENSORS);
 
 		virtual int unregister_change_handler(void *userdata,
-			  vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 sensor = vrpn_ALL_SENSORS);
+			  vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 whichSensor  = vrpn_ALL_SENSORS);
 
 	protected:
 		vrpn_Callback_List<vrpn_TRACKERHANDCB> d_callback_list;

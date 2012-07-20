@@ -477,7 +477,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 /*Adrian */
 	{
 		// Create the Heightfield Geometry
-		HeightFieldGeometry_quad->setVertexArray(HeightFieldPoints); 
+		HeightFieldGeometry_quad->setVertexArray(HeightFieldPoints);
 		HeightFieldGeometry_quad->addPrimitiveSet(new osg::DrawArrays( GL_QUADS, 0, HeightFieldPoints->size()));
 		HeightFieldGeometry_quad->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 
