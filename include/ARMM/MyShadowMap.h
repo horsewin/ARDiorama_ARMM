@@ -21,104 +21,103 @@
 
 #include <osgShadow/ShadowTechnique>
 
-namespace osgShadow {
-
-/** ShadowedTexture provides an implementation of shadow textures.*/
-class MyShadowMap : public ShadowTechnique
+namespace osgShadow
 {
-    public :
-        MyShadowMap();
 
-        MyShadowMap(const MyShadowMap& es, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-            
-        META_Object(osgShadow, MyShadowMap);
-        
-        /** Set the texture unit that the shadow texture will be applied on.*/
-        void setTextureUnit(unsigned int unit);
+	/** ShadowedTexture provides an implementation of shadow textures.*/
+	class MyShadowMap : public ShadowTechnique
+	{
+		public :
+			MyShadowMap();
 
-        /** Get the texture unit that the shadow texture will be applied on.*/
-        unsigned int getTextureUnit() const { return _shadowTextureUnit; }
+			MyShadowMap(const MyShadowMap& es, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
-        /** set the polygon offset used initially */
-        void setPolygonOffset(const osg::Vec2& polyOffset);
+			META_Object(osgShadow, MyShadowMap);
 
-        /** get the used polygon offset */
-        const osg::Vec2& getPolygonOffset() const { return _polyOffset; }
+			/** Set the texture unit that the shadow texture will be applied on.*/
+			void setTextureUnit(unsigned int unit);
 
-        /** Set the values for the ambient bias the shader will use.*/
-        void setAmbientBias(const osg::Vec2& ambientBias );
+			/** Get the texture unit that the shadow texture will be applied on.*/
+			unsigned int getTextureUnit() const { return _shadowTextureUnit; }
+
+			/** set the polygon offset used initially */
+			void setPolygonOffset(const osg::Vec2& polyOffset);
+
+			/** get the used polygon offset */
+			const osg::Vec2& getPolygonOffset() const { return _polyOffset; }
+
+			/** Set the values for the ambient bias the shader will use.*/
+			void setAmbientBias(const osg::Vec2& ambientBias );
 
 
-        /** Get the values that are used for the ambient bias in the shader.*/
-        const osg::Vec2& getAmbientBias() const { return _ambientBias; }
+			/** Get the values that are used for the ambient bias in the shader.*/
+			const osg::Vec2& getAmbientBias() const { return _ambientBias; }
 
-        /** set the size in pixels x / y for the shadow texture.*/
-        void setTextureSize(const osg::Vec2s& textureSize);
+			/** set the size in pixels x / y for the shadow texture.*/
+			void setTextureSize(const osg::Vec2s& textureSize);
 
-        /** Get the values that are used for the ambient bias in the shader.*/
-        const osg::Vec2s& getTextureSize() const { return _textureSize; }
+			/** Get the values that are used for the ambient bias in the shader.*/
+			const osg::Vec2s& getTextureSize() const { return _textureSize; }
 
-        /** Set the Light that will cast shadows */
-        void setLight(osg::Light* light);
-        void setLight(osg::LightSource* ls);
+			/** Set the Light that will cast shadows */
+			void setLight(osg::Light* light);
+			void setLight(osg::LightSource* ls);
 
-        typedef std::vector< osg::ref_ptr<osg::Uniform> > UniformList;
+			typedef std::vector< osg::ref_ptr<osg::Uniform> > UniformList;
 
-        typedef std::vector< osg::ref_ptr<osg::Shader> > ShaderList;
+			typedef std::vector< osg::ref_ptr<osg::Shader> > ShaderList;
 
-        /** Add a shader to internal list, will be used instead of the default ones */
-        inline void addShader(osg::Shader* shader) { _shaderList.push_back(shader); }
-        
-        /** Reset internal shader list */
-        inline void clearShaderList() { _shaderList.clear(); }
+			/** Add a shader to internal list, will be used instead of the default ones */
+			inline void addShader(osg::Shader* shader) { _shaderList.push_back(shader); }
 
-        /** initialize the ShadowedScene and local cached data structures.*/
-        virtual void init();
-        
-        /** run the update traversal of the ShadowedScene and update any loca chached data structures.*/
-        virtual void update(osg::NodeVisitor& nv);
-        
-        /** run the cull traversal of the ShadowedScene and set up the rendering for this ShadowTechnique.*/
-        virtual void cull(osgUtil::CullVisitor& cv);
-        
-        /** Clean scene graph from any shadow technique specific nodes, state and drawables.*/
-        virtual void cleanSceneGraph();
-        
-        // debug methods
+			/** Reset internal shader list */
+			inline void clearShaderList() { _shaderList.clear(); }
 
-        osg::ref_ptr<osg::Camera> makeDebugHUD();
+			/** initialize the ShadowedScene and local cached data structures.*/
+			virtual void init();
 
-    protected:
-        virtual ~MyShadowMap(void) {};
+			/** run the update traversal of the ShadowedScene and update any loca chached data structures.*/
+			virtual void update(osg::NodeVisitor& nv);
 
-        /** Create the managed Uniforms */
-        virtual void createUniforms();
+			/** run the cull traversal of the ShadowedScene and set up the rendering for this ShadowTechnique.*/
+			virtual void cull(osgUtil::CullVisitor& cv);
 
-        virtual void createShaders();
-        
-        // forward declare, interface and implementation provided in MyShadowMap.cpp
-        class DrawableDrawWithDepthShadowComparisonOffCallback;
+			/** Clean scene graph from any shadow technique specific nodes, state and drawables.*/
+			virtual void cleanSceneGraph();
 
-        osg::ref_ptr<osg::Camera>       _camera;
-        osg::ref_ptr<osg::TexGen>       _texgen;
-        osg::ref_ptr<osg::Texture2D>    _texture;
-        osg::ref_ptr<osg::StateSet>     _stateset;
-        osg::ref_ptr<osg::Program>      _program;
-        osg::ref_ptr<osg::Light>        _light;
+			// debug methods
 
-        osg::ref_ptr<osg::LightSource>  _ls;
+			osg::ref_ptr<osg::Camera> makeDebugHUD();
 
-        osg::ref_ptr<osg::Uniform>      _ambientBiasUniform;
-        UniformList                     _uniformList;
-        ShaderList                      _shaderList;
-        unsigned int                    _baseTextureUnit;
-        unsigned int                    _shadowTextureUnit;
-        osg::Vec2                        _polyOffset;
-        osg::Vec2                       _ambientBias;
-        osg::Vec2s                      _textureSize;
+		protected:
+			virtual ~MyShadowMap(void) {};
 
-    };
+			/** Create the managed Uniforms */
+			virtual void createUniforms();
 
+			virtual void createShaders();
+
+			// forward declare, interface and implementation provided in MyShadowMap.cpp
+			class DrawableDrawWithDepthShadowComparisonOffCallback;
+
+			osg::ref_ptr<osg::Camera>       _camera;
+			osg::ref_ptr<osg::TexGen>       _texgen;
+			osg::ref_ptr<osg::Texture2D>    _texture;
+			osg::ref_ptr<osg::StateSet>     _stateset;
+			osg::ref_ptr<osg::Program>      _program;
+			osg::ref_ptr<osg::Light>        _light;
+
+			osg::ref_ptr<osg::LightSource>  _ls;
+
+			osg::ref_ptr<osg::Uniform>      _ambientBiasUniform;
+			UniformList                     _uniformList;
+			ShaderList                      _shaderList;
+			unsigned int                    _baseTextureUnit;
+			unsigned int                    _shadowTextureUnit;
+			osg::Vec2                        _polyOffset;
+			osg::Vec2                       _ambientBias;
+			osg::Vec2s                      _textureSize;
+	};
 }
 
 #endif

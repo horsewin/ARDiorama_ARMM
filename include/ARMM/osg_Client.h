@@ -248,8 +248,10 @@ public:
 	std::vector<osg::PositionAttitudeTransform*> world_sphere_transform_array;
 
 	vector<CvPoint3D32f> carRect;
-	CvPoint2D32f osg_carSize;
-	osgViewer::Viewer viewer;
+	CvPoint2D32f			osg_carSize;
+
+	//main viewer
+	osgViewer::Viewer		viewer;
 
 
 	//for debug
@@ -804,8 +806,8 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 //					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
 
 					obj_texture->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
-					obj_texture->setAttitude(obj_texture->getAttitude());
 
+					obj_texture->setAttitude(obj_texture->getAttitude());
 					return;
 				}
 			}

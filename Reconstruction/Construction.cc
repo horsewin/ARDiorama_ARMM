@@ -27,7 +27,7 @@
 //const definition
 namespace PTAMM{
 
-#define CHECK 0 //処理時間を出力するorしない
+#define CHECK_RUNNING_TIME 0 //処理時間を出力するorしない
 
 //namespace definition
 using namespace std;
@@ -260,27 +260,42 @@ void Construction::updateVoxel( void ){
 #endif
 	//空ボクセル数の初期化
 	ulint empty = size*size*2+ (size - 2)*size*2 + (size - 2)*(size - 2)*2;
+
 	//処理対象データがなければ実行しない
 	if( fContents->getSeginfo() < 1) return;
+
 	//SCMが動作しているかどうか
 	if( state_scm != RUN ) return;
+
 	//TODO foregroundメンバの削除
 //	unsigned char *	silhouette = foreground.back()->silhouette;
 //	TooN::SE3<> 			se3CFromW  = foreground.back()->camerapose;
 	const unsigned char * silhouette = fContents->popSilhouette();
 	const TooN::SE3<> 	 se3CFromW  = fContents->popCameraPose();
-	while(fContents->pData.state_proj == RUN) state_scm = IDLE;
+
+	while(fContents->pData.state_proj == RUN)
+	{
+		state_scm = IDLE;
+	}
+
 	state_scm = RUN;
 	fContents->pData.state_proj = RUN;
 	fContents->pData_pre.state_proj = RUN;
-	REP(i,width*height){
+	REP(i,width*height)
+	{
 		fContents->pData_pre.projected[i] = fContents->pData.projected[i];
 		fContents->pData.projected[i] = 0.0;
 	}
+
 	if(current_empty > 0)
+	{
 		fContents->pData_pre.state_proj = READY;
+	}
 	else
+	{
 		fContents->pData_pre.state_proj = NEW;
+	}
+
 	for(int i = 1; i < size; i++) for(int j = 1; j < size; j++) for( int k = 1; k < size; k++){
 		if(voxels[i][j][k].val <= EPSILON) empty++;
 		else{
@@ -294,15 +309,27 @@ void Construction::updateVoxel( void ){
 			if(voxels[i][j][k].val > OCCUPIED ) voxels[i]	[j][k].val = OCCUPIED;
 		}
 	}
-	if( current_empty <= 0 || ( cubesdata->getSizeTexture() < 3 ) ) fContents->pData.state_proj = IDLE;
-	else fContents->pData.state_proj = READY;
+
+	if( current_empty <= 0 || ( cubesdata->getSizeTexture() < 3 ) )
+	{
+		fContents->pData.state_proj = IDLE;
+	}
+	else
+	{
+		fContents->pData.state_proj = READY;
+	}
+
 	num_of_carving++;
+
 	//Erase silhouette and camera pose
 	if( state_scm == READY ) return;
 	state_scm = READY;
-	while(bDelete);
+
+	while(bDelete){}
 	deleteForegroundData();
-	if( current_empty < empty){
+
+	if( current_empty < empty)
+	{
 		/* Free-spaceが増加したときにMarching Cubes法を実行する */
 		if( num_of_carving > 5
 				){
@@ -413,7 +440,8 @@ void Construction::deallocateTables(void) {
 }
 
 //#TODO スマートポインタを使う
-void Construction::deleteForegroundData( void ) {
+void Construction::deleteForegroundData( void )
+{
 //	SegmentationInfo *buf = foreground.front();
 //	delete buf;
 //	foreground.pop_front();
@@ -590,7 +618,7 @@ uint Construction::sizeForeground( void ) const{
 void Construction::setSideOfCube(const TooN::Vector< 3 > & dx , const TooN::Vector< 3 > & dy , const TooN::Vector< 3 > & dz , const TooN::Vector< 3 > & start_vector){
 	this->dx = dx;
 	this->dy = dy;
-	this->dz = dz * 2; //TODO 7.26変更してみた
+	this->dz = dz * 2; //TODO
 	this->start_vector = start_vector;
 }
 

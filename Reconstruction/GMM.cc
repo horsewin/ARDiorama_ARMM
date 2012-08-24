@@ -53,9 +53,10 @@ void GMM::Run(const char *outputname1 , const char *outputname2){
 //	emgm->dprint(outputname1 , outputname2);
 }
 
-void GMM::Run( const std::vector< TooN::Vector< 3 > > col , const std::vector< TooN::Vector< 2 > > crd ){
+void GMM::Run( const std::vector< TooN::Vector< 3 > > col , const std::vector< TooN::Vector< 2 > > crd )
+{
 	/*
-	 * OpenCVのEMアルゴリズムをもう一度試みる 2011.4.14
+	 * OpenCVのEM
 	 */
 	colsize = col.size();
 	CvEM em_model;
@@ -70,6 +71,7 @@ void GMM::Run( const std::vector< TooN::Vector< 3 > > col , const std::vector< T
 			cvmSet( samples , i , id , x[id]);
 		}
 	}
+
     // モデルパラメータの初期化
     params.covs      = NULL;
     params.means     = NULL;
@@ -81,31 +83,37 @@ void GMM::Run( const std::vector< TooN::Vector< 3 > > col , const std::vector< T
     params.term_crit.max_iter = iterate;
     params.term_crit.epsilon  = EPSILON;
     params.term_crit.type     = CV_TERMCRIT_ITER|CV_TERMCRIT_EPS;
+
     // EMアルゴリズムのトレーニング
 	em_model.train( samples , 0 , params);
+
 	// まどろっこしい手法
 	// 平均・共分散行列とその逆行列をメンバ変数に格納
 	const CvMat *means	= em_model.get_means();
 	const CvMat *weights = em_model.get_weights();
 	const CvMat ** covs  = em_model.get_covs();
 	CvMat ** inversecovs = new CvMat*[cla];
-	REP(i,cla){
+	REP(i,cla)
+	{
 		inversecovs[i] = cvCreateMat( dim , dim , CV_32FC1);
 	}
-	REP(i,cla){
-		REP(j,dim){
+	REP(i,cla)
+	{
+		REP(j,dim)
+		{
 			pTheta[i]->Mu[j] = cvGetReal2D( means , i , j);
-			REP(k,dim){
+			REP(k,dim)
+			{
 				pTheta[i]->S[j*dim + k] = cvGetReal2D( covs[i] , j , k );
 				cvmSet( inversecovs[i] , j , k , pTheta[i]->S[j*dim + k]);
 			}
 		}
 		pTheta[i]->detS = cvmDet(covs[i]);
 		pTheta[i]->weight = cvGetReal2D( weights , 0 , i);
-//		cout << pTheta[i]->weight << " ";
 	}
-//	cout << endl;
-	REP(i,cla){
+
+	REP(i,cla)
+	{
 		cvmInvert( inversecovs[i] , inversecovs[i]);
 		REP(j,dim) REP(k,dim)
 			pTheta[i]->invS[j*dim + k] = cvGetReal2D( inversecovs[i] , j , k );

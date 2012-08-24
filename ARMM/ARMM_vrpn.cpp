@@ -62,33 +62,6 @@ namespace ARMM{
 		server_mainloop();
 	}
 
-	/*
-
-	////////////// MAIN ///////////////////
-
-	int _tmain(int argc, _TCHAR* argv[])
-	{
-		// Creating the network server
-		vrpn_Connection_IP* m_Connection = new vrpn_Connection_IP();
-
-		// Creating the tracker
-		ARMM_Communicator* ARMM_server = new ARMM_Communicator(m_Connection );
-
-		cout << "Created VRPN server." << endl;
-
-		while(true)
-		{
-			serverTracker->mainloop();
-
-			m_Connection->mainloop();
-
-			// Calling Sleep to let the CPU breathe.
-			SleepEx(1,FALSE);
-		}
-	}
-
-	*/
-
 }
 #endif
 

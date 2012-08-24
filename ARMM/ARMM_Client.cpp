@@ -74,16 +74,16 @@ namespace ARMM{
 	osg::Vec3d		ObjectsArrayPos[NUM_OBJECTS];
 	osg::Quat		ObjectsArrayQuat[NUM_OBJECTS];
 
-	void RenderScene(IplImage *arImage, Capture *capture);
-	void DeleteLostObject(void);
-	void InitVirtualObjectsCoordinate(void);
+//	void RenderScene(IplImage *arImage, Capture *capture);
+//	void DeleteLostObject(void);
+//	void InitVirtualObjectsCoordinate(void);
 
 
 	//---------------------------------------------------------------------------
 	// Constant/Define
 	//---------------------------------------------------------------------------
 	const float OSG_SCALE = 10;
-	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.131"; //this value depends on IP address assigned computer
+	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.135"; //this value depends on IP address assigned computer
 
 	//---------------------------------------------------------------------------
 	// Code
@@ -413,10 +413,10 @@ namespace ARMM{
 		if(transfer == 1){
 			transfer = 2; //this value means texture have been already transferred
 
-//			cout << "Last Collided obj  index = " << collisionInd	 << endl;
-//			cout << "All of Object index = " << objectIndex  << endl;
+			cout << "Last Collided obj  index = " << collisionInd	 << endl;
+			cout << "All of Object index = " << objectIndex  << endl;
 			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
-//			GetCollisionCoordinate(collidedNodeInd);
+			GetCollisionCoordinate(collidedNodeInd);
 			fontText->setText("");
 
 			kc->set_input(100); //swap the collided object
@@ -485,7 +485,8 @@ namespace ARMM{
 	void ARMM::RenderScene(IplImage *arImage, Capture *capture)
 	{
 
-	if(Virtual_Objects_Count > 0){
+	if(Virtual_Objects_Count > 0)
+	{
 //		osg::Geode * geode = model3ds->asGeode();
 //				uint numGeodes = geode->getNumDrawables();
 //
@@ -502,7 +503,7 @@ namespace ARMM{
 //	//		}
 //		}
 
-	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmpGeo->getTexCoordArray(0);
+	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmp Geo->getTexCoordArray(0);
 	//	cout << "Texture size = " << texcoords->size() << endl;
 	}
 	#ifdef SIM_MICROMACHINE
@@ -576,7 +577,7 @@ namespace ARMM{
 		cout << scale_4 << endl;
 		rotate = rotate * 1/scale_4.x();
 
-		if(false){
+		if(true){
 			osg::Matrix	*modelMatrix = new osg::Matrix;
 
 			modelMatrix->setTrans(trans);
@@ -596,6 +597,7 @@ namespace ARMM{
 			cerr << "No matrix in model" << endl;
 		}
 	}
+
 	void ARMM::DecideCollisionCondition()
 	{
 		if( touch ) //touch = true
