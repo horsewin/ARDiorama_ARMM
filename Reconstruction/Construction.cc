@@ -81,6 +81,7 @@ void Construction::run( ){
 			}
 			if( state_mcm == RUN ){
 				state_scm = IDLE;
+				system("cd ~/TextureTransfer/TextureTransfer && ./TT");
 				CreateMarchingCubes();
 				state_scm = READY;
 			}

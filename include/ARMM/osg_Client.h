@@ -598,7 +598,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 
 	//virtual objects part
 	for(uint i = 0; i < v_array.size(); i++) {
-//		obj_transform_array.at(i)->setAttitude(q_array.at(i));
+		obj_transform_array.at(i)->setAttitude(q_array.at(i));
 		obj_transform_array.at(i)->setPosition(v_array.at(i));
 		obj_fonts_array.at(i)->setPosition(v_array.at(i));
 	}

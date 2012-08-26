@@ -318,7 +318,7 @@ namespace ARMM{
 		}
 
 		//----->Collision checker
-		else if( t.sensor > CAR_PARAM && t.sensor < COLLISION_PARAM){
+		else if( t.sensor > CAR_PARAM && t.sensor <= COLLISION_PARAM){
 			REP(p,3){
 				pCollision[p] = (float)t.pos[p];			// the position of collision
 			}
@@ -331,7 +331,7 @@ namespace ARMM{
 
 		//----->Receive objects info
 		else{
-			int index = t.sensor - COLLISION_PARAM;
+			int index = t.sensor - (COLLISION_PARAM+1);
 			ObjectsArrayPos[index].set(  osg::Vec3d((float)t.pos[0]*OSG_SCALE , (float)t.pos[1]*OSG_SCALE , (float)t.pos[2]*OSG_SCALE));
 			osg::Quat quat = osg::Quat((double)t.quat[0]*OSG_SCALE, (double)t.quat[1]*OSG_SCALE, (double)t.quat[2]*OSG_SCALE, (double)t.quat[3]*OSG_SCALE);
 			ObjectsArrayQuat[index].set(quat.x(), quat.y(), quat.z(), quat.w());
@@ -568,30 +568,35 @@ namespace ARMM{
 
 	void ARMM::GetCollisionCoordinate(const int & index)
 	{
-		osg::Quat  rotate = obj_transform_array[index]->getAttitude();
-		osg::Vec3d trans  = obj_transform_array[index]->getPosition();
-		osg::Vec3d scale  = obj_transform_array[index]->getScale();
-		osg::Quat	 scale_4;
-		scale_4.set(osg::Vec4d(scale.x(), scale.y(), scale.z(), 1));
-
-		cout << scale_4 << endl;
-		rotate = rotate * 1/scale_4.x();
+//		osg::Quat  rotate = obj_transform_array[index]->getAttitude();
+//		osg::Vec3d trans  = obj_transform_array[index]->getPosition();
+//		osg::Vec3d scale  = obj_transform_array[index]->getScale();
+//		osg::Quat	 scale_4;
+//		scale_4.set(osg::Vec4d(scale.x(), scale.y(), scale.z(), 1));
+//
+//		cout << scale_4 << endl;
+//		rotate = rotate * 1/scale_4.x();
 
 		if(true){
-			osg::Matrix	*modelMatrix = new osg::Matrix;
+//			osg::Matrix	*modelMatrix = new osg::Matrix;
+//
+//			modelMatrix->setTrans(trans);
+//			modelMatrix->setRotate(rotate);
+//			osg::Matrix	modelInverseMatrix = modelMatrix->inverse(*modelMatrix);
 
-			modelMatrix->setTrans(trans);
-			modelMatrix->setRotate(rotate);
-			osg::Matrix	modelInverseMatrix = modelMatrix->inverse(*modelMatrix);
+//			osg::Vec4d		posCollision;
+//			REP(i,3) posCollision[i] = pCollision[i];
+//			posCollision[3] = 1;
 
-			osg::Vec4d		posCollision;
-			REP(i,3) posCollision[i] = pCollision[i];
-			posCollision[3] = 1;
+//			osg::Vec4d		posCollisionLocal = (modelInverseMatrix) * posCollision;
 
-			osg::Vec4d		posCollisionLocal = (modelInverseMatrix) * posCollision;
-
-			cout << "PosCollision in World coordinate -> " << posCollision << endl;
-			cout << "PosCollision in Local coordinate -> " << posCollisionLocal << endl;
+			osg::Vec3d modified_pos, pos;
+			pos.set(pCollision[0], pCollision[1], pCollision[2]);
+			modified_pos.set(ObjectsArrayPos[0]/10);
+			cout << "PosCollision in World coordinate -> " << pos << endl;
+			cout << "Pos in World coordinate(OSG) -> " << modified_pos << endl;
+			cout << "Modified PosCollision without Rotate and Scaling -> " << pos- modified_pos << endl;
+//			cout << "PosCollision in Local coordinate -> " << posCollisionLocal << endl;
 
 		}else{
 			cerr << "No matrix in model" << endl;

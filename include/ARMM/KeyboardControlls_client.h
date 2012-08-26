@@ -93,32 +93,19 @@ public:
 				const char * str = "ARMM/Data/rec/NewTorus.3ds";
 				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
 				LoadCheck(obj.get(), str);
-
-				double scale = 80.1812; //サーバ側の値から決定した for Torus
-//				double scale = 1.61828; //サーバ側の値から決定した for MIKU
+				float scale = 10;
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
 			}
 
 			case 80: {//p
-				const char * str = "ARMM/Data/rec2/NewModel.3ds";
+				const char * str = "ARMM/Data/rec2/BlueCow.3ds";
 				osg::ref_ptr<osg::Node> obj = osg3DSFileFromDiorama(str, "ARMM/Data/rec2/");
 				LoadCheck(obj.get(), str);
 
-				double scale = 80.15; //サーバ側の値から決定した for cow
-
-				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
-				obj_pat->setAttitude(osg::Quat(
-					osg::DegreesToRadians(90.f), osg::Vec3d(1.0, 0.0, 0.0),
-					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
-					osg::DegreesToRadians(90.f), osg::Vec3d(0.0, 0.0, 1.0)
-					));
-				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-				obj_pat->addChild(obj);
-
-				osgAddObjectNode(dynamic_cast<osg::Node *>(obj_pat.release()));
+				double scale = 10; //サーバ側の値から決定した for cow
+				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
 			}
@@ -141,14 +128,14 @@ public:
 				               ->getChildIndex(obj_node_array[collidedNodeInd]); //子ノードのインデックスを取得
 				obj_transform_array[collidedNodeInd]->setChild
 				(childInd, osg3DSFileFromDiorama("ARMM/Data/rec/NewModel.3ds"));				//子ノードを別のノードでセットしなおす
-				double s = 80.15;
-				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(s,s,s));
-				obj_transform_array[collidedNodeInd]->setAttitude(osg::Quat(
-						osg::DegreesToRadians(90.f), osg::Vec3d(1.0, 0.0, 0.0),
-						osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
-						osg::DegreesToRadians(90.f), osg::Vec3d(0.0, 0.0, 1.0)
-				));
-
+//				double s = 80.15;
+//				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(s,s,s));
+//				obj_transform_array[collidedNodeInd]->setAttitude(osg::Quat(
+//						osg::DegreesToRadians(90.f), osg::Vec3d(1.0, 0.0, 0.0),
+//						osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+//						osg::DegreesToRadians(90.f), osg::Vec3d(0.0, 0.0, 1.0)
+//				));
+//
 				collision = false;
 				break;
 			}
