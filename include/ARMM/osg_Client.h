@@ -332,7 +332,8 @@ void osg_init(double *projMatrix) {
 };
 
 
-void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
+void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
+{
 	static bool hasInit = false;
 
 	if (hasInit) {
@@ -345,15 +346,16 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 	arTrackedNode->removeChildren(0,arTrackedNode->getNumChildren());
 
 #ifdef SIM_MICROMACHINE
-//	const char * file = "ARMM/Data/HatuneMiku.3ds";
-	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(CAR1_BODY_FILENAME);
-//	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(file);
+	string file(MODELDIR);
+	file+= "Newapple.3ds";
+//	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(CAR1_BODY_FILENAME);
+	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(file.c_str());
 	LoadCheck(car1.get(), CAR1_BODY_FILENAME);
 	osg::ref_ptr<osg::PositionAttitudeTransform> car_trans1 = new osg::PositionAttitudeTransform();
 	car_trans1->setAttitude(osg::Quat(
 		osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
 		osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
-		osg::DegreesToRadians(180.f), osg::Vec3d(0.0, 0.0, 1.0)
+		osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 		));
 	car_trans1->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
 
@@ -361,11 +363,12 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale) {
 	//test to apply a Geode object for a Node object
 
 //	car_trans1->setScale(osg::Vec3d(200,200,200));
-	double scale = 80.1812; //サーバ側の値から決定した
-	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
-	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/rec/apple.3ds"));
+//	double scale = 180.1812; //サーバ側の値から決定した
+//	double scale = 300; //サーバ側の値から決定した
+//	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
+//	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/Model1/apple_origin.3ds"));
 //	car_trans1->addChild(createCube());
-//	car_trans1->addChild(car1.get()); // car version
+	car_trans1->addChild(car1.get()); // car version
 
 	osg::ref_ptr<osg::Node> wheel1 = osgDB::readNodeFile(CAR1_WHEEL_FILENAME);
 	std::vector<osg::PositionAttitudeTransform*> wheel_tmp_trans1;

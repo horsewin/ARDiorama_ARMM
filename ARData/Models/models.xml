@@ -26,6 +26,8 @@
     <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_330_2011" file="Voxel_2012_330_2011.3ds" roll="0" pitch="0" yaw="0" />
     <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_330_2013" file="Voxel_2012_330_2013.3ds" roll="0" pitch="0" yaw="0" />
     <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_524_2124" file="Voxel_2012_524_2124.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_92_1712" file="Voxel_2012_92_1712.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_92_1731" file="Voxel_2012_92_1731.3ds" roll="0" pitch="0" yaw="0" />
     <!--R Objects End -->
   </Category>
 </PTAMM_Model_DB>

@@ -46,10 +46,12 @@ namespace ARMM{
 	//---------------------------------------------------------------------------
 	bool running = true;
 
-	bool stroke;
-	bool touch;
+	bool stroke = false;
+	bool touch  = false;
 	float pCollision[3];
 	int transfer;
+	char filename[] = "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/debug_remote.txt";
+	std::ofstream output(filename);
 
 	osgText::Text * fontText;
 
@@ -248,7 +250,7 @@ namespace ARMM{
 		// this value depends on data size
 		// you are supposed to send
 		// In this case, you can count on the number of vrpn_float32 variablef
-		int data_size = (UDP_LIMITATION*3)*sizeof(vrpn_float32) + sizeof(vrpn_int32);
+		int data_size = UDP_LIMITATION* 3 *sizeof(vrpn_float32) + sizeof(vrpn_int32);
 		//int data_size = sizeof(vrpn_float32) + sizeof(vrpn_int32);
 		if (p.payload_len !=  data_size) {
 			fprintf(stderr,"ARMMClient: change message payload error\n");
@@ -410,16 +412,31 @@ namespace ARMM{
 
 		DecideCollisionCondition();
 
-		if(transfer == 1){
+		if( touch && stroke )
+		{
+			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
+			GetCollisionCoordinate(collidedNodeInd);
+		}
+
+		if(transfer == 1)
+		{
 			transfer = 2; //this value means texture have been already transferred
 
 			cout << "Last Collided obj  index = " << collisionInd	 << endl;
 			cout << "All of Object index = " << objectIndex  << endl;
 			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
+			output << "d " << endl; //as delimitar
 			GetCollisionCoordinate(collidedNodeInd);
+
+			//Running "Texture Transfer exe"
+			stringstream str("sh TT.sh ");
+			system(str.str().c_str());
+
+			//clear "Touch" sentence
 			fontText->setText("");
 
-			kc->set_input(100); //swap the collided object
+			//swap the collided object
+			kc->set_input(100);
 		}
 
 #endif
@@ -478,7 +495,6 @@ namespace ARMM{
 	  cout << "Created VRPN server." << endl;
 		//<-----
 		#endif
-
 		m_pass = 0;
 	}
 
@@ -590,12 +606,14 @@ namespace ARMM{
 
 //			osg::Vec4d		posCollisionLocal = (modelInverseMatrix) * posCollision;
 
-			osg::Vec3d modified_pos, pos;
+//			osg::Vec3d modified_pos,;
+			osg::Vec3d pos;
 			pos.set(pCollision[0], pCollision[1], pCollision[2]);
-			modified_pos.set(ObjectsArrayPos[0]/10);
-			cout << "PosCollision in World coordinate -> " << pos << endl;
-			cout << "Pos in World coordinate(OSG) -> " << modified_pos << endl;
-			cout << "Modified PosCollision without Rotate and Scaling -> " << pos- modified_pos << endl;
+//			modified_pos.set(ObjectsArrayPos[0]/10);
+			output << "v " << pos << endl;
+//			cout << "PosCollision in World coordinate -> " << pos << endl;
+//			cout << "Pos in World coordinate(OSG) -> " << modified_pos << endl;
+//			cout << "Modified PosCollision without Rotate and Scaling -> " << pos- modified_pos << endl;
 //			cout << "PosCollision in Local coordinate -> " << posCollisionLocal << endl;
 
 		}else{

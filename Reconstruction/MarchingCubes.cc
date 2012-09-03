@@ -39,7 +39,14 @@ namespace PTAMM{
 			TooN::Vector< 2 > v2Image = camera.Project(v2ImPlane);
 			return v2Image;
 		}
+
+		bool IsEqualFloat(const float *v1, const float *v2)
+		{
+			return( fabs(v1[0]-v2[0])<0.001 && fabs(v1[1]-v2[1])<0.001 && fabs(v1[2]-v2[2])<0.001 );
+		}
 	}
+
+
 
 	MarchingCubes::MarchingCubes(int size, double isolevel , const ATANCamera & acam)
 		: SIZE(size) , mIsoLevel(isolevel) , mpCamera(acam)
@@ -194,7 +201,8 @@ namespace PTAMM{
 		// First, the number of meshes are calculated
 		sModel->nmeshes = texSize;
 		sModel->meshes = new Lib3dsMesh*[texSize];
-		REP(tnum,texSize){
+		REP(tnum,texSize)
+		{
 			ostringstream meshFilename;
 			meshFilename << "mesh" << tnum;
 			sModel->meshes[tnum] = lib3ds_mesh_new( meshFilename.str().c_str() );
@@ -227,6 +235,93 @@ namespace PTAMM{
 			sModel->meshes[tnum]->nfaces = face_number;
 			sModel->meshes[tnum]->nvertices = face_number * 3;
 		}
+
+//		//2012.09.02 for Texture Transfer Interaction
+//		// Reserve the mesh
+//		// First, the number of meshes are calculated
+//		sModel->nmeshes = 1;
+//		sModel->meshes = new Lib3dsMesh*[1];
+//		int faceSum = 0;
+//		REP(texNumber,texSize)
+//		{
+//			faceSum += mTriangles[texNumber].size();
+//		}
+//
+//		int face_number = 0;
+//		REP(tnum,texSize)
+//		{
+//			ostringstream meshFilename;
+//			meshFilename << "mesh" << tnum;
+//			sModel->meshes[1] = lib3ds_mesh_new( meshFilename.str().c_str() );
+//
+//			// Creating temporary memory for data of face
+//
+//			sModel->meshes[1]->faces = new Lib3dsFace[faceSum];
+//			sModel->meshes[1]->vertices = new float[faceSum*3][3];
+//			sModel->meshes[1]->texcos = new float[faceSum*3][2];
+//
+//			// Reserve the vertices information
+//			deque<Triangle>::iterator i;
+//			for (i = mTriangles[tnum].begin(); i != mTriangles[tnum].end(); i++){
+//				// Reserve the face setting
+//				sModel->meshes[1]->faces[face_number].material = 1;
+//				REP(id,3){
+//					int index = face_number * 3 + id;
+//					sModel->meshes[1]->faces[face_number].index[id] = index;
+//
+//					sModel->meshes[1]->vertices[index][0] = (*i).point[id].coord[0];
+//					sModel->meshes[1]->vertices[index][1] = (*i).point[id].coord[1];
+//					sModel->meshes[1]->vertices[index][2] = (*i).point[id].coord[2];
+//
+//					sModel->meshes[1]->texcos[index][0] = (*i).point[id].tex[0]/(float)WIDTH;
+//					sModel->meshes[1]->texcos[index][1] = (*i).point[id].tex[1]/(float)HEIGHT;
+//				}
+//				face_number++;
+//			}
+//		}
+//		sModel->meshes[1]->nfaces = face_number;
+//		sModel->meshes[1]->nvertices = face_number * 3;
+//		int * indexArray = new int[sModel->meshes[1]->nvertices];
+//		REP(i, sModel->meshes[1]->nvertices){
+//			indexArray[i] = i;
+//		}
+//		//重複チェック
+//		int nVertices = 0;
+//		REP(i,sModel->meshes[1]->nvertices)
+//		{
+//			bool duplicate = false;
+//			int current_index = 0;
+//			REP(j,i)
+//			{
+//				//現在探索済みの頂点番号よりも小さいインデックスを持つ頂点＝既に探索済み
+//				if(indexArray[j] < current_index ) continue;
+//
+//				if( IsEqualFloat( sModel->meshes[1]->vertices[current_index], sModel->meshes[1]->vertices[i]))
+//				{
+//					indexArray[i] = indexArray[current_index];
+//					duplicate = true;
+//					break;
+//				}
+//
+//				current_index++;
+//			}
+//
+//			if(!duplicate)
+//			{
+//				if( i > current_index) indexArray[i] =current_index+1;
+//				nVertices++;
+//			}
+//		}
+//
+//		REP(numFace,sModel->meshes[1]->nfaces)
+//		{
+//			REP(i,3)
+//			{
+//				sModel->meshes[1]->faces[numFace].index[i] = indexArray[sModel->meshes[1]->faces[numFace].index[i]];
+//			}
+//		}
+
+		//to load from PTAMM system
 		SaveXMLFile( filename );
 
 		ostringstream saveName;
@@ -238,7 +333,8 @@ namespace PTAMM{
 		if( system(com.str().c_str() ) ){}
 	}
 
-	void MarchingCubes::SaveXMLFile( const char * filename ) {
+	void MarchingCubes::SaveXMLFile( const char * filename )
+	{
 		string ostr = "/home/umakatsu/NewARDiorama/ARDiorama/ARData/Models/modelsTextCopy";
 		string istr = "/home/umakatsu/NewARDiorama/ARDiorama/ARData/Models/modelsText";
 		ofstream ofs( ostr.c_str() );

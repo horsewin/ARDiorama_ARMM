@@ -20,6 +20,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <osgwTools/Shapes.h>
+
+const char * MODELDIR = "ARMM/Data/Model1/";
 /*
 //osgbullet
 #include <osgbDynamics/MotionState.h>
@@ -152,6 +155,11 @@ osg::Node* osgBoxNode(float box_size) {
 	return geode.release();
 }
 
+osg::Node* osg3DSFile( const char * file)
+{
+
+}
+
 osg::Node* osgTexture(const char * file)
 {
 	//open 3ds file
@@ -219,7 +227,7 @@ osg::Node* osgTexture(const char * file)
 	id = 0;
 
 	// Acquire a texture name
-	std::string tex_file = "ARMM/Data/rec/mesh1.bmp";
+	std::string tex_file = "ARMM/Data/Model1/LSCM_NewTorus1.bmp";
 	osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
 
 	// Activate texture
@@ -277,7 +285,45 @@ osg::Node* osgTexture(const char * file)
 	geode->addDrawable(geometry.get());
 
 	return geode.release();
+}
 
+osg::Node* osgCreateSoft(string texturename)
+{
+	const short resX(12), resY(9);
+    osg::ref_ptr< osg::Geode > geode( new osg::Geode );
+    const osg::Vec3 llCorner( 0.0, .0, 0.0 );
+    const osg::Vec3 uVec( 100.0, 0.0, 0.0 );
+    const osg::Vec3 vVec( 0.0, 100.0, 0.0 ); // Must be at a slight angle for wind to catch it.
+    osg::Geometry* geom = osgwTools::makePlane( llCorner,
+        uVec, vVec, osg::Vec2s( resX-1, resY-1 ) );
+    geode->addDrawable( geom );
+
+    // Set up for dynamic data buffer objects
+    geom->setDataVariance( osg::Object::DYNAMIC );
+    geom->setUseDisplayList( false );
+    geom->setUseVertexBufferObjects( true );
+    geom->getOrCreateVertexBufferObject()->setUsage( GL_DYNAMIC_DRAW );
+
+    // Flag state: 2-sided lighting and a texture map.
+    {
+        osg::StateSet* stateSet( geom->getOrCreateStateSet() );
+
+//        osg::LightModel* lm( new osg::LightModel() );
+//        lm->setTwoSided( true );
+//        stateSet->setAttributeAndModes( lm );
+
+        const std::string texName( texturename.c_str() );
+        osg::Texture2D* tex( new osg::Texture2D(
+            osgDB::readImageFile( texName ) ) );
+        if( ( tex == NULL ) || ( tex->getImage() == NULL ) )
+            osg::notify( osg::WARN ) << "Unable to read texture: \"" << texName << "\"." << std::endl;
+        else
+        {
+            tex->setResizeNonPowerOfTwoHint( false );
+            stateSet->setTextureAttributeAndModes( 0, tex );
+        }
+    }
+    return (geode.release());
 }
 
 osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
@@ -372,7 +418,7 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 		}
 		else
 		{
-			tex_file = "ARMM/Data/rec/";
+			tex_file = MODELDIR;
 		}
 		tex_file += model->materials[nm]->texture1_map.name;
 //		osg::ref_ptr<osg::TextureRectangle> texture = 0;
