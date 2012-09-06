@@ -10,16 +10,13 @@
 #ifndef MODEL3DS_H
 #define MODEL3DS_H
 
-#include <lib3ds.h>
-#include <string>
-#include <deque>
-#include <vector>
 #include "Reconstruction/Texture.h"
+
+#include <lib3ds.h>
+#include <deque>
 #include "OpenGL.h"
 
 #include <TooN/TooN.h>
-
-#include "ImageType.h"
 
 namespace PTAMM {
 

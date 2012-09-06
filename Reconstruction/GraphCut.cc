@@ -14,7 +14,7 @@
 #include <cmath>
 #include <vector>
 #include <TooN/helpers.h>
-#include <float.h>
+#include <cfloat>
 #include <time.h>
 
 #include <boost/array.hpp>
@@ -66,7 +66,7 @@ namespace{
 				||	(i==-1 && j== 1)
 				||	(i== 1 && j== 1)
 				||	(i== 1 && j== -1)
-				);
+				){}
 				else{
 					if( (p[0] + i ) >= 0
 					&&	(p[0] + i ) < WIDTH
@@ -258,7 +258,7 @@ void GraphCut::initFirst( GaussDistribution ** gmm_fore , GaussDistribution ** g
 			REP( i_n , neighbors.size()){
 				Vector < 2 > q = neighbors.at(i_n);
 				/* 追加されていないノードのエッジの重みは飛ばす */
-				if( (p[0] < q[0]) || (p[1] < q[1]));
+				if( (p[0] < q[0]) || (p[1] < q[1])){}
 				else {
 					Vector < D > iq;
 					unsigned long int n = q[0] + q[1]*width;
@@ -366,7 +366,7 @@ void GraphCut::initRegular(GaussDistribution ** gmm_fore , GaussDistribution ** 
 	//			if( img[qn] == CHECKREGION || img[qn] == FOREGROUND ){
 			if( img[qn] == CHECKREGION ){
 			  /* 追加されていないノードのエッジの重みは飛ばす */
-			  if( (p[0] < q[0]) || (p[1] < q[1]));
+			  if( (p[0] < q[0]) || (p[1] < q[1])){}
 			  else {
 				  Vector < D > iq;
 				  REP( id , D ) iq[id] = rgb_data[qn][id];

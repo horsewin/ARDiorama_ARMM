@@ -797,7 +797,8 @@ void Model3DS::_DelayedLoad() {
  * Load the model textures
  * @param pModel the lib3ds model file
  */
-deque<Texture *> Model3DS::_LoadTextures(Lib3dsFile * pModel, string dirpath) {
+deque<Texture *> Model3DS::_LoadTextures(Lib3dsFile * pModel, string dirpath)
+{
 	assert( pModel );
 	// Creation of the texture's list
 	deque<Texture *> texList;

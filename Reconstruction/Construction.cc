@@ -14,6 +14,7 @@
 #include <fstream>
 #include <math.h>
 #include <stdio.h>
+#include <cfloat>
 #include <cstdio>
 
 #include "Model/Model.h"
@@ -243,7 +244,7 @@ void Construction::recoveringVoxel( void ){
 	TooN::SE3<> 			se3CFromW  = foreground.back()->camerapose;
 	// Renew a set of voxels
 	for(int i = 1; i < size; i++) for(int j = 1; j < size; j++) for( int k = 1; k < size; k++){
-		if(signumber(voxels[i][j][k].val) > EPSILON);
+		if(signumber(voxels[i][j][k].val) > EPSILON){}
 		else{
 			// recovery of a set of voxels
 			if( projection(i , j , k , silhouette , se3CFromW) > EPSILON ){

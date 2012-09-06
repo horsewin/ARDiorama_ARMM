@@ -23,14 +23,31 @@
 //---------------------------------------------------------------------------
 //#define USE_CLIENT_SENDER
 
-
-#define NUM_CARS 2
-#define NUM_WHEELS 4
+#if CAR_SIMULATION == 1
+	const int NUM_CARS = 2;
+	const int NUM_WHEELS = 4;
+#else
+	const int NUM_CARS = 0;
+	const int NUM_WHEELS = 0;
+#endif
 
 const int NUM_OBJECTS = 10;
 const int CAR_PARAM 			= NUM_CARS*NUM_WHEELS+NUM_CARS;
 const int COLLISION_PARAM	= CAR_PARAM + 1;
+const short resX(12);
+const short resY(9);
 extern bool running;
+
+#ifndef VRPN_ARCH
+typedef  char            vrpn_int8;
+typedef  unsigned char   vrpn_uint8;
+typedef  short           vrpn_int16;
+typedef  unsigned short  vrpn_uint16;
+typedef  int             vrpn_int32;
+typedef  unsigned int	 vrpn_uint32;
+typedef  float           vrpn_float32;
+typedef  double          vrpn_float64;
+#endif
 
 //---------------------------------------------------------------------------
 // Struct
@@ -44,15 +61,24 @@ typedef	struct _vrpn_TRACKERHANDCB {
 typedef void (VRPN_CALLBACK *vrpn_TRACKERHANDCHANGEHANDLER)(void *userdata,
 					     const vrpn_TRACKERHANDCB info);
 
+typedef	struct _vrpn_TRACKERSOFTTEXTURECB {
+	struct timeval	msg_time;	// Time of the report
+	vrpn_int32	sensor;		// Which sensor is reporting
+	vrpn_float32 softT[resX*resY][3];
+} vrpn_TRACKERSOFTTEXTURECB;
+typedef void (VRPN_CALLBACK *vrpn_TRACKERSOFTTEXTURECHANGEHANDLER)(void *userdata,
+					     const vrpn_TRACKERSOFTTEXTURECB info);
+
 class KeyboardController_client;
 
-namespace ARMM{
-
-//---------------------------------------------------------------------------
-	// Class definition
-	//---------------------------------------------------------------------------
+namespace ARMM
+{
+	enum datatype{REGULAR, SOFTBODY};
 	class PointgreyCamera;
 
+	//---------------------------------------------------------------------------
+	// Class definition
+	//---------------------------------------------------------------------------
 	class ARMMClient : public vrpn_Tracker_Remote
 	{
 	public:
@@ -66,18 +92,31 @@ namespace ARMM{
 		virtual int unregister_change_handler(void *userdata,
 			  vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 whichSensor  = vrpn_ALL_SENSORS);
 
+		virtual int register_change_handler(void *userdata,
+			  vrpn_TRACKERSOFTTEXTURECHANGEHANDLER handler, vrpn_int32 whichSensor  = vrpn_ALL_SENSORS);
+
+		virtual int unregister_change_handler(void *userdata,
+			  vrpn_TRACKERSOFTTEXTURECHANGEHANDLER handler, vrpn_int32 whichSensor  = vrpn_ALL_SENSORS);
+
 	protected:
-		vrpn_Callback_List<vrpn_TRACKERHANDCB> d_callback_list;
+		vrpn_Callback_List<vrpn_TRACKERHANDCB> hand_callback_list;
+		vrpn_Callback_List<vrpn_TRACKERSOFTTEXTURECB> st_callback_list;
 	  //ARMMSensorCallbacks   all_sensor_callbacks;
 	  //ARMMSensorCallbacks   *sensor_callbacks;
 
 		//Atsushi
 		vrpn_int32 hand_m_id;	// ID of tracker hand message
+		vrpn_int32 softtexture_m_id;	// ID of tracker hand message
 
 	protected:
 		virtual int register_types(void);
 		static int VRPN_CALLBACK handle_hand_change_message(void *userdata,
 			vrpn_HANDLERPARAM p);
+		static int VRPN_CALLBACK handle_softtexture_change_message(void *userdata,
+			vrpn_HANDLERPARAM p);
+
+	private:
+		datatype mDataType;
 
 	};
 

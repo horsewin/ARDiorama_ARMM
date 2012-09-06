@@ -32,8 +32,6 @@ private:
 #ifndef KEYBOARD_CONTROLSCLIENT_H
 #define KEYBOARD_CONTROLSCLIENT_H
 
-#define SIM_MICROMACHINE 1
-
 #include <iostream>
 
 //OpenCV
@@ -51,12 +49,12 @@ const float SPHERE_SIZE = 2;//FULL SIZE
 
 using namespace std;
 
-class KeyboardController_client{
+class KeyboardController_client
+{
 public:
 	KeyboardController_client(){};
-	int check_input() {
-
-#ifdef SIM_MICROMACHINE
+	int check_input()
+	{
 		if (getKey(78)) {//N
 			return 78;
 		} else if (getKey(83)) {//S
@@ -66,15 +64,13 @@ public:
 		} else if (getKey(68)) {//D
 			return 68;
 		}
-#endif /*SIM_MICROMACHINE*/
-
 		//A 65 S 83 D 68 W 87 F 70 V 86
 		return 0;
 	}
 
-	void set_input(const int & key) {
+	void set_input(const int & key)
+	{
 
-#ifdef SIM_MICROMACHINE
 		switch(key){
 			case 78://N
 //				osgAddObjectNode(osgSphereNode(SPHERE_SIZE));
@@ -103,11 +99,11 @@ public:
 
 			case 80: {//p
 				const char * str = "ARMM/Data/Model2/BlueCow.3ds";
-//				const char * str = "ARMM/Data/Model1/apple.3ds";
 				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
 				LoadCheck(obj.get(), str);
-
 				double scale = 10; //サーバ側の値から決定した for cow
+//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("ARMM/Data/ModelApple/apple.3ds", "ARMM/Data/ModelApple/"));
+//				double scale = 300; //サーバ側の値から決定した for apple
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
@@ -121,7 +117,7 @@ public:
 			case 100: {// This function is called after texture transferred
 
 				string str(MODELDIR);
-				const char * file = "Newcow.3ds";
+				const char * file = "Newapple.3ds";
 				str += file;
 
 				//remove the texture image object
@@ -146,10 +142,6 @@ public:
 				string str(MODELDIR);
 				const char * file = "LSCM_NewTorus1.bmp";
 				str += file;
-//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.c_str());
-//				LoadCheck(obj.get(), str.c_str());
-//				objTexture = obj;
-//				LoadCheck(objTexture.get(), str.c_str());
 				objTexture = osgCreateSoft(str.c_str());
 				LoadCheck(objTexture.get(), str.c_str());
 
@@ -167,7 +159,7 @@ public:
 
 				obj_texture = obj_pat;
 				shadowedScene->addChild(obj_texture);
-				obj_texture->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+				obj_texture->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
 				cout << "<<Create a texture image with ocurring collision>>" << endl;
 
@@ -175,8 +167,6 @@ public:
 			}
 
 		}
-#endif /*SIM_MICROMACHINE*/
-
 		//A 65 S 83 D 68 W 87 F 70 V 86
 	}
 

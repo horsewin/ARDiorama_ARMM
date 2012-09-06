@@ -43,11 +43,24 @@
 //Original objects
 #include "osg_geom_data.h"
 
+#include "constant.h"
 //---------------------------------------------------------------------------
 // Constant/Define
 //---------------------------------------------------------------------------
-#define SIM_MICROMACHINE 1
-#define REP(i,n) for(int i=0;i<(int)n;++i)
+
+//for file loading
+const char *  MARKER_FILENAME = "ARMM/Data/Celica.bmp";
+//const char *  MARKER_FILENAME "Data/thai_art.jpg"
+const char *  CAMERA_PGR_PARAMS_FILENAME = "ARMM/Data/Cameras/camera_pointgrey.yml";
+const char *  CAMERA_PARAMS_FILENAME = "ARMM/Data/Cameras/camera.yml";
+const char *  KINECT_PARAMS_FILENAME = "ARMM/Data/Cameras/kinect.yml";
+const char *  KINECT_TRANSFORM_FILENAME = "ARMM/Data/Cameras/KinectTransform.yml";
+const char *  KINECT_CONFIG_FILENAME = "ARMM/Data/Cameras/KinectConfig.xml";
+
+const char *  CAR1_BODY_FILENAME = "ARMM/Data/Cars/GT4_body.ive";
+const char *  CAR1_WHEEL_FILENAME = "ARMM/Data/Cars/GT4_tire.ive";
+const char *  CAR2_BODY_FILENAME = "ARMM/Data/Cars/Murcielago_body.ive";
+const char *  CAR2_WHEEL_FILENAME = "ARMM/Data/Cars/Murcielago_tire.ive";
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
@@ -88,15 +101,15 @@ bool collision = false;
 bool handAppear = false;
 
 std::vector<osg::PositionAttitudeTransform*> hand_object_global_array;
-std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[MAX_NUM_HANDS];
 std::vector<osg::Drawable*> hand_object_drawble_array[MAX_NUM_HANDS];
+std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[MAX_NUM_HANDS];
 
 void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale);
 void osg_setHFNode(osg::Node* n);
 void osgAddObjectNode(osg::Node* n);
 void osg_createHand(int index, float world_scale, float ratio);
 void osg_UpdateHand(int index, float *x, float *y, float *grid);
-
+void osg_UpdateSoftTexture(void);
 
 //---------------------------------------------------------------------------
 // Code
@@ -242,8 +255,11 @@ public:
 	//	std::vector<osg::Drawable *> obj_d_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_fonts_array;
 
+	//for soft texture
 	osg::ref_ptr<osg::Node> objTexture;
 	osg::ref_ptr<osg::PositionAttitudeTransform> obj_texture;
+	osg::Vec3d softT_coord[resX*resY];
+	bool softTexture = false;
 
 	std::vector<osg::PositionAttitudeTransform*> world_sphere_transform_array;
 
@@ -345,11 +361,11 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 
 	arTrackedNode->removeChildren(0,arTrackedNode->getNumChildren());
 
-#ifdef SIM_MICROMACHINE
+#if CAR_SIMULATION == 1
 	string file(MODELDIR);
 	file+= "Newapple.3ds";
-//	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(CAR1_BODY_FILENAME);
-	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(file.c_str());
+	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(CAR1_BODY_FILENAME);
+//	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(file.c_str());
 	LoadCheck(car1.get(), CAR1_BODY_FILENAME);
 	osg::ref_ptr<osg::PositionAttitudeTransform> car_trans1 = new osg::PositionAttitudeTransform();
 	car_trans1->setAttitude(osg::Quat(
@@ -362,11 +378,10 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 	//Addition node to Tree
 	//test to apply a Geode object for a Node object
 
-//	car_trans1->setScale(osg::Vec3d(200,200,200));
 //	double scale = 180.1812; //サーバ側の値から決定した
 //	double scale = 300; //サーバ側の値から決定した
 //	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
-//	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/Model1/apple_origin.3ds"));
+//	car_trans1->addChild(osg3DSFileFromDiorama("/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/cube/cube.3ds", "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/cube/"));
 //	car_trans1->addChild(createCube());
 	car_trans1->addChild(car1.get()); // car version
 
@@ -374,7 +389,8 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 	std::vector<osg::PositionAttitudeTransform*> wheel_tmp_trans1;
 	LoadCheck(wheel1.get(), CAR1_WHEEL_FILENAME);
 
-	for(int i = 0 ; i < 4; i++)  { 
+	for(int i = 0 ; i < 4; i++)
+	{
 		wheel_tmp_trans1.push_back(new osg::PositionAttitudeTransform); 
 		wheel_tmp_trans1.at(i)->addChild(wheel1.get());
 		if(i == 0 || i == 3) {
@@ -440,12 +456,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 	car_transform.at(1)->setNodeMask(castShadowMask );
 	//car_transform.at(1)->setNodeMask(rcvShadowMask );
 
-#endif /*SIM_MICROMACHINE*/
-
-	//osgAddObjectNode(osgNodeFromBtSphere(4));
-	//cout << "OBJ" << endl;
-	//Virtual_Objects_Count++;
-
+#endif /* CAR_SIMULATION == 1 */
 
 	// Set shadow node
 //V	osg::ref_ptr<osgShadow::ShadowTexture> sm = new osgShadow::ShadowTexture;
@@ -465,7 +476,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 //V	source->getLight()->setDiffuse( osg::Vec4(0.8, 0.8, 0.8, 1.0) );
 //V	shadowedScene->addChild(source);
 
-#ifdef SIM_MICROMACHINE
+#if CAR_SIMULATION == 1
 	shadowedScene->addChild( car_transform.at(0) );
 	shadowedScene->addChild( car_transform.at(1) );
 
@@ -474,7 +485,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 			shadowedScene->addChild(wheel_transform[i].at(j));
 		}
 	} 
-#endif /*SIM_MICROMACHINE*/
+#endif /* CAR_SIMULATION == 1 */
 	celicaIndex = arTrackedNode->addMarkerContent(markerName, maxLengthSize, maxLengthScale, shadowedScene);
 	arTrackedNode->setVisible(celicaIndex, true);
 
@@ -520,14 +531,14 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 		//Set up the shadow masks
 		mt->setNodeMask( rcvShadowMask );
 		mt->getOrCreateStateSet()->setRenderBinDetails(0, "RenderBin");
-#ifdef SIM_MICROMACHINE
+#if CAR_SIMULATION == 1
 		car_transform.at(0)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 		car_transform.at(1)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 		for(int w=0; w<4; w++){
 			wheel_transform[0].at(w)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 			wheel_transform[1].at(w)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 		}
-#endif /*SIM_MICROMACHINE*/
+#endif /* CAR_SIMULATION == 1 */
 		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
 		//At the heightmap twice, once for shadowing and once for occlusion
@@ -553,7 +564,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 	cvCvtColor(mGLImage, mGLImage, CV_BGR2RGB);
 	mVideoImage->setImage(mGLImage->width, mGLImage->height, 0, 3, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)mGLImage->imageData, osg::Image::NO_DELETE);
 
-#ifdef SIM_MICROMACHINE
+#if CAR_SIMULATION == 1
 	if(car_transform.at(0)) {
 		for(int i = 0; i < 2; i++) {
 			car_transform.at(i)->setAttitude(q[i]);
@@ -564,7 +575,12 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 			}
 		}
 	}
-#endif /*SIM_MICROMACHINE*/
+#endif /* CAR_SIMULATION == 1 */
+
+	if(softTexture)
+	{
+		osg_UpdateSoftTexture();
+	}
 
 	if (!viewer.done()) {
 		if (CAPTURE_SIZE.width != REGISTRATION_SIZE.width || CAPTURE_SIZE.height != REGISTRATION_SIZE.height) {
@@ -586,7 +602,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 	cvCvtColor(mGLImage, mGLImage, CV_BGR2RGB);
 	mVideoImage->setImage(mGLImage->width, mGLImage->height, 0, 3, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)mGLImage->imageData, osg::Image::NO_DELETE);
 
-#ifdef SIM_MICROMACHINE
+#if CAR_SIMULATION == 1
 	//virtual cars part
 	if(car_transform.at(0)) {
 		for(int i = 0; i < 2; i++) {
@@ -598,6 +614,7 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 			}
 		}
 	}
+#endif /* CAR_SIMULATION == 1 */
 
 	//virtual objects part
 	for(uint i = 0; i < v_array.size(); i++) {
@@ -606,7 +623,10 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 		obj_fonts_array.at(i)->setPosition(v_array.at(i));
 	}
 
-#endif /*SIM_MICROMACHINE*/
+	if(softTexture)
+	{
+		osg_UpdateSoftTexture();
+	}
 
 	if (!viewer.done()) {
 		if (CAPTURE_SIZE.width != REGISTRATION_SIZE.width || CAPTURE_SIZE.height != REGISTRATION_SIZE.height) {
@@ -777,8 +797,8 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 	for(int i = 0; i < MIN_HAND_PIX; i++) {
 		for(int j = 0; j < MIN_HAND_PIX; j++) {
 			int curr = i*MIN_HAND_PIX + j;
-			if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION ){
-
+			if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION )
+			{
 				if(!handAppear){
 					objectIndex += MIN_HAND_PIX*MIN_HAND_PIX;
 					handAppear = true;
@@ -795,26 +815,49 @@ void osg_UpdateHand(int index, float *x, float *y, float *grid)
 	}
 
 	//移動させるテクスチャを手に追従してうごかすために手の先端位置に移動させる
-	if(collision){
-		for(int i = 0; i < MIN_HAND_PIX; i++) {
-			for(int j = 0; j < MIN_HAND_PIX; j++) {
-				int curr = i*MIN_HAND_PIX + j;
+//	if(collision){
+//		for(int i = 0; i < MIN_HAND_PIX; i++) {
+//			for(int j = 0; j < MIN_HAND_PIX; j++) {
+//				int curr = i*MIN_HAND_PIX + j;
+//
+//				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION )
+//				{
+////					cout << "Finger : " << x[curr]*scale << "," << y[curr]*scale << "," << grid[curr]*scale << endl;
+////					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
+////					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
+////					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
+////					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
+//
+//					obj_texture->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
+//					obj_texture->setAttitude(obj_texture->getAttitude());
+//					return;
+//				}
+//			}
+//		}
+//	}
+}
 
-				if(grid[curr] > 0 && grid[curr] < HEIGHT_LIMITATION )
-				{
-//					cout << "Finger : " << x[curr]*scale << "," << y[curr]*scale << "," << grid[curr]*scale << endl;
-//					osg::Node * n = hand_object_transform_array[0].at(curr)->getChild(0);
-//					osg::Geode * curGeode = dynamic_cast<osg::Geode*>(n);
-//					osg::ShapeDrawable* shapeDraw = dynamic_cast<osg::ShapeDrawable*>(curGeode->getDrawable(0));
-//					shapeDraw->setColor(HANDSPHERECOLLIDECOL);
+void osg_UpdateSoftTexture()
+{
+	osg::Geode * geode(objTexture->asGeode());
+	osg::Drawable * draw = geode->getDrawable(0);
+	osg::Geometry * geom(draw->asGeometry());
+	osg::Vec3Array* verts( dynamic_cast< osg::Vec3Array* >( geom->getVertexArray() ) );
 
-					obj_texture->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, grid[curr]*scale));
+    osg::Vec3Array::iterator it( verts->begin() );
 
-					obj_texture->setAttitude(obj_texture->getAttitude());
-					return;
-				}
-			}
-		}
-	}
+    REP(idx, resX*resY)
+    {
+		*it++ = softT_coord[idx];
+//		printf("(%f,%f,%f)\n",softT_coord[idx].x(), softT_coord[idx].y(), softT_coord[idx].z());
+    }
+
+    verts->dirty();
+    draw->dirtyBound();
+
+    // Generate new normals.
+	osgUtil::SmoothingVisitor smooth;
+	smooth.smooth( *geom );
+	geom->getNormalArray()->dirty();
 }
 #endif

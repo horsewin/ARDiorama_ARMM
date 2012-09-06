@@ -40,7 +40,8 @@ using namespace std;
 using namespace CVD;
 using namespace GVars3;
 
-namespace ARMM{
+namespace ARMM
+{
 	//---------------------------------------------------------------------------
 	// Global
 	//---------------------------------------------------------------------------
@@ -69,10 +70,12 @@ namespace ARMM{
 	#endif
 
 	//osg objects
+#if CAR_SIMULATION == 1
 	osg::Quat		CarsArrayQuat[NUM_CARS];
 	osg::Quat		WheelsArrayQuat[NUM_CARS][4];
 	osg::Vec3d		CarsArrayPos[NUM_CARS];
 	osg::Vec3d		WheelsArrayPos[NUM_CARS][4];
+#endif /* #if CAR_SIMULATION == 1 */
 	osg::Vec3d		ObjectsArrayPos[NUM_OBJECTS];
 	osg::Quat		ObjectsArrayQuat[NUM_OBJECTS];
 
@@ -146,11 +149,17 @@ namespace ARMM{
 		if( d_connection != NULL){
 			// Register a handler for the acceleration change callback.
 			if( register_autodeleted_handler( hand_m_id, handle_hand_change_message, this, d_sender_id) )
-			//if( register_autodeleted_handler( hand_m_id, handle_hand_change_message, this, d_sender_id))
 			{
 				fprintf(stderr, "ARMMClient: can't register hand handler\n");
 				d_connection = NULL;
 			}
+
+			if( register_autodeleted_handler( softtexture_m_id, handle_softtexture_change_message, this, d_sender_id) )
+			{
+				fprintf(stderr, "ARMMClient: can't register soft texture handler\n");
+				d_connection = NULL;
+			}
+
 		}
 		else
 		{
@@ -158,11 +167,14 @@ namespace ARMM{
 		}
 
 		//init parameter
-		REP(i,HAND_SIZE){
+		REP(i,HAND_SIZE)
+		{
 			hand_coord_x[0][i] = 0.0;
 			hand_coord_y[0][i] = 0.0;
 			hand_coord_z[0][i] = 0.0;
 		}
+
+		mDataType = REGULAR;
 	}
 
 	//virtual
@@ -172,8 +184,8 @@ namespace ARMM{
 
 	void ARMMClient::mainloop( void )
 	{
-		if( d_connection ){
-
+		if( d_connection )
+		{
 			d_connection->mainloop();
 		}
 
@@ -196,11 +208,60 @@ namespace ARMM{
 
 	  // If this is the ALL_SENSORS value, put it on the all list; otherwise,
 	  // put it into the normal list.
+	  if (whichSensor == vrpn_ALL_SENSORS)
+	  {
+			hand_callback_list.register_handler(userdata, handler);
+		  //return all_sensor_callbacks.d_handchange.register_handler(userdata, handler);
+
+	  } else if (ensure_enough_sensor_callbacks(whichSensor)) {
+			hand_callback_list.register_handler(userdata, handler);
+			//return sensor_callbacks[whichSensor].d_handchange.register_handler(userdata, handler);
+
+	  } else {
+			fprintf(stderr,"ARMMClient::register_change_handler: Out of memory\n");
+			return -1;
+
+	  }
+	  return 0;
+	}
+
+	int ARMMClient::unregister_change_handler(void *userdata,
+			vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 whichSensor)
+	{
+	 // put it into the normal list.
 	  if (whichSensor == vrpn_ALL_SENSORS) {
-			d_callback_list.register_handler(userdata, handler);
+			hand_callback_list.unregister_handler(userdata, handler);
 		  //return all_sensor_callbacks.d_handchange.register_handler(userdata, handler);
 		} else if (ensure_enough_sensor_callbacks(whichSensor)) {
-			d_callback_list.register_handler(userdata, handler);
+			hand_callback_list.unregister_handler(userdata, handler);
+			//return sensor_callbacks[whichSensor].d_handchange.register_handler(userdata, handler);
+		} else {
+			fprintf(stderr,"ARMMClient::register_change_handler: Out of memory\n");
+			return -1;
+		}
+	  return 0;
+	}
+
+	int ARMMClient::register_change_handler(void *userdata, vrpn_TRACKERSOFTTEXTURECHANGEHANDLER handler, vrpn_int32 whichSensor)
+	{
+		if (whichSensor < vrpn_ALL_SENSORS) {
+			fprintf(stderr, "ARMMClient::register_change_handler: bad sensor index\n");
+			return -1;
+		}
+		// Ensure that the handler is non-NULL
+		if (handler == NULL) {
+			fprintf(stderr,
+			   "ARMMClient::register_change_handler: NULL handler\n");
+			return -1;
+		}
+
+	  // If this is the ALL_SENSORS value, put it on the all list; otherwise,
+	  // put it into the normal list.
+	  if (whichSensor == vrpn_ALL_SENSORS) {
+			st_callback_list.register_handler(userdata, handler);
+		  //return all_sensor_callbacks.d_handchange.register_handler(userdata, handler);
+		} else if (ensure_enough_sensor_callbacks(whichSensor)) {
+			st_callback_list.register_handler(userdata, handler);
 			//return sensor_callbacks[whichSensor].d_handchange.register_handler(userdata, handler);
 		} else {
 			fprintf(stderr,"ARMMClient::register_change_handler: Out of memory\n");
@@ -211,14 +272,14 @@ namespace ARMM{
 	}
 
 	int ARMMClient::unregister_change_handler(void *userdata,
-			vrpn_TRACKERHANDCHANGEHANDLER handler, vrpn_int32 whichSensor)
+			vrpn_TRACKERSOFTTEXTURECHANGEHANDLER handler, vrpn_int32 whichSensor)
 	{
 	 // put it into the normal list.
 	  if (whichSensor == vrpn_ALL_SENSORS) {
-			d_callback_list.unregister_handler(userdata, handler);
+			st_callback_list.unregister_handler(userdata, handler);
 		  //return all_sensor_callbacks.d_handchange.register_handler(userdata, handler);
 		} else if (ensure_enough_sensor_callbacks(whichSensor)) {
-			d_callback_list.unregister_handler(userdata, handler);
+			st_callback_list.unregister_handler(userdata, handler);
 			//return sensor_callbacks[whichSensor].d_handchange.register_handler(userdata, handler);
 		} else {
 			fprintf(stderr,"ARMMClient::register_change_handler: Out of memory\n");
@@ -233,7 +294,8 @@ namespace ARMM{
 		//vrpn_Tracker_Remote::register_types();
 
 		// to handle hand state changes
-		hand_m_id = d_connection->register_message_type("vrpn_Tracker Hand");
+		hand_m_id  = d_connection->register_message_type("vrpn_Tracker Hand");
+		softtexture_m_id = d_connection->register_message_type("vrpn_Tracker SoftTexture");
 		return 0;
 	}
 
@@ -272,7 +334,7 @@ namespace ARMM{
 		// Go down the list of callbacks that have been registered.
 		// Fill in the parameter and call each.
 		//me->all_sensor_callbacks.d_handchange.call_handlers(tp);
-		me->d_callback_list.call_handlers(tp);
+		me->hand_callback_list.call_handlers(tp);
 
 	 // // Go down the list of callbacks that have been registered for this
 		//// particular sensor
@@ -287,6 +349,58 @@ namespace ARMM{
 		//}
 		return 0;
 	}
+
+	int VRPN_CALLBACK ARMMClient::handle_softtexture_change_message(
+		void *userdata, vrpn_HANDLERPARAM p)
+	{
+
+		ARMMClient *me = (ARMMClient *)userdata;
+		const char *params = (p.buffer);
+		vrpn_TRACKERSOFTTEXTURECB	tp;
+
+		// Fill in the parameters to the tracker from the message
+
+		// this value depends on data size
+		// you are supposed to send
+		// In this case, you can count on the number of vrpn_float32 variablef
+		int data_size = (resX*resY)* 3 *sizeof(vrpn_float32) + sizeof(vrpn_int32);
+		//int data_size = sizeof(vrpn_float32) + sizeof(vrpn_int32);
+		if (p.payload_len !=  data_size) {
+			fprintf(stderr,"ARMMClient(SoftTexture): change message payload error\n");
+			fprintf(stderr,"             (got %d, expected %d)\n",
+				p.payload_len, data_size );
+			return -1;
+
+		}
+
+		tp.msg_time = p.msg_time;
+		vrpn_unbuffer(&params, &tp.sensor);
+		REP(i,resX*resY){
+			REP(j,3){
+				vrpn_unbuffer(&params, &tp.softT[i][j]);
+			}
+		}
+		//vrpn_unbuffer(&params, &tp.hand);
+
+		// Go down the list of callbacks that have been registered.
+		// Fill in the parameter and call each.
+		//me->all_sensor_callbacks.d_handchange.call_handlers(tp);
+		me->st_callback_list.call_handlers(tp);
+
+	 // // Go down the list of callbacks that have been registered for this
+		//// particular sensor
+		//if (tp.sensor < 0) {
+		//    fprintf(stderr,"ARMMClient:pos sensor index is negative!\n");
+		//    return -1;
+		//} else if (me->ensure_enough_sensor_callbacks(tp.sensor)) {
+		//	me->sensor_callbacks[tp.sensor].d_handchange.call_handlers(tp);
+		//} else {
+		//    fprintf(stderr,"ARMMClient:pos sensor index too large\n");
+		//    return -1;
+		//}
+		return 0;
+	}
+
 	///////// End of ARMM_Client definition ////////////////
 
 	inline CvMat* scaleParams(CvMat *cParams, double scaleFactor) {
@@ -300,6 +414,7 @@ namespace ARMM{
 	void VRPN_CALLBACK handle_pos (void * userData, const vrpn_TRACKERCB t)
 	{
 		if( t.sensor < CAR_PARAM){
+#if CAR_SIMULATION == 1
 			if(t.sensor % 5 == 0) {// pos and orientation of cars
 				int j = (int) t.sensor / 5;
 				CarsArrayPos[j] = osg::Vec3d((float) t.pos[0],(float) t.pos[1],(float) t.pos[2]);
@@ -310,6 +425,7 @@ namespace ARMM{
 				WheelsArrayPos[j][k] = osg::Vec3d((float) t.pos[0],(float) t.pos[1],(float) t.pos[2]);
 				WheelsArrayQuat[j][k]= osg::Quat((float) t.quat[0], (float) t.quat[1], (float) t.quat[2], (float) t.quat[3]);
 			}
+#endif /* CAR_SIMULATION == 1 */
 		}
 
 		//----->Keyboard input checker
@@ -357,17 +473,20 @@ namespace ARMM{
 			}
 		}
 	}
+	void VRPN_CALLBACK handle_softtextures(void * userData, const vrpn_TRACKERSOFTTEXTURECB h)
+	{
+		REP(count,resX*resY){
+			softT_coord[count].set(
+					static_cast<double>(h.softT[count][0]),
+					static_cast<double>(h.softT[count][1]),
+					static_cast<double>(h.softT[count][2])
+					               );
+		}
+	}
 	//<----- Callback function
 
 
 	//////////////////// Entry point ////////////////////
-//	ARMM::ARMM()
-
-	//	:
-//	{
-//
-//	}
-
 	ARMM::ARMM( ::Capture *camera)
 #ifdef POINTGREYCAMERA
 		: capture(static_cast<PointgreyCamera *>(camera))
@@ -417,12 +536,11 @@ namespace ARMM{
 			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
 			GetCollisionCoordinate(collidedNodeInd);
 		}
-
 		if(transfer == 1)
 		{
 			transfer = 2; //this value means texture have been already transferred
 
-			cout << "Last Collided obj  index = " << collisionInd	 << endl;
+			cout << "Last Collided obj index = " << collisionInd	 << endl;
 			cout << "All of Object index = " << objectIndex  << endl;
 			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
 			output << "d " << endl; //as delimitar
@@ -437,6 +555,8 @@ namespace ARMM{
 
 			//swap the collided object
 			kc->set_input(100);
+
+			softTexture = false;
 		}
 
 #endif
@@ -463,8 +583,10 @@ namespace ARMM{
 	}*/
 
 
-	void ARMM::Init( void ){
+	void ARMM::Init( void )
+	{
 		// initialize values of virtual objects
+#if CAR_SIMULATION == 1
 		for(int i =0; i < NUM_CARS; i++) {
 			CarsArrayPos[i] = osg::Vec3d(0,0,0);
 			CarsArrayQuat[i] = osg::Quat(0,0,0,1);
@@ -473,6 +595,7 @@ namespace ARMM{
 				WheelsArrayQuat[i][j] = osg::Quat(0,0,0,1);
 			}
 		}
+#endif
 
 		RegistrationParams = scaleParams(capture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
 		osg_init(calcProjection(RegistrationParams, capture->getDistortion(), REGISTRATION_SIZE));
@@ -486,6 +609,7 @@ namespace ARMM{
 		armm_client = new ARMMClient (ARMM_SERVER_IP);
 		armm_client->vrpn_Tracker_Remote::register_change_handler(NULL, handle_pos);
 		armm_client->ARMMClient::register_change_handler(NULL, handle_hands);
+		armm_client->ARMMClient::register_change_handler(NULL, handle_softtextures);
 		//<-----
 
 		#ifdef USE_CLIENT_SENDER
@@ -501,8 +625,8 @@ namespace ARMM{
 	void ARMM::RenderScene(IplImage *arImage, Capture *capture)
 	{
 
-	if(Virtual_Objects_Count > 0)
-	{
+//	if(Virtual_Objects_Count > 0)
+//	{
 //		osg::Geode * geode = model3ds->asGeode();
 //				uint numGeodes = geode->getNumDrawables();
 //
@@ -521,8 +645,7 @@ namespace ARMM{
 
 	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmp Geo->getTexCoordArray(0);
 	//	cout << "Texture size = " << texcoords->size() << endl;
-	}
-	#ifdef SIM_MICROMACHINE
+//	}
 		if(Virtual_Objects_Count > 0) {
 
 			DeleteLostObject();
@@ -533,15 +656,19 @@ namespace ARMM{
 				vect_obj_array.push_back(ObjectsArrayPos[i]);
 			}
 			osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
+#if CAR_SIMULATION == 1
 			osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
+#else
+			(arImage, NULL, NULL, NULL, NULL, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
+#endif
 		} else {
 			osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
+#if CAR_SIMULATION == 1
 			osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
-		}
-	#else
-		osg_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
-	#endif /*SIM_MICROMACHINE*/
-
+#else
+			osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, capture->getDistortion());
+#endif
+		}/* Virtual_Objects_Count > 0 */
 	}
 
 
@@ -649,6 +776,9 @@ namespace ARMM{
 						osg::Geode * fontGeode = obj_fonts_array[ind]->getChild(0)->asGeode();
 						fontText = dynamic_cast< osgText::Text* >(fontGeode->getDrawable(0));
 						fontText->setText("TOUCH!!");
+
+						//make the updater for soft texture ON
+						softTexture = true;
 
 						// set a created hand to the graphics tree
 						kc->set_input(101);

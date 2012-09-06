@@ -14,10 +14,8 @@
 #include <osg/TextureRectangle>
 #include <osg/TexMat>
 
-#include <lib3ds.h>
 #include "Model/Model3ds.h"
 
-#include <vector>
 #include <iostream>
 #include <fstream>
 #include <osgwTools/Shapes.h>
@@ -153,11 +151,6 @@ osg::Node* osgBoxNode(float box_size) {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable( shape.get() );
 	return geode.release();
-}
-
-osg::Node* osg3DSFile( const char * file)
-{
-
 }
 
 osg::Node* osgTexture(const char * file)
@@ -401,6 +394,7 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 	// Loop through every mesh
 	osg::ref_ptr<osg::Group> body = new osg::Group;
 	long int id;
+	std::cout << model->nmaterials << endl;
 	for(int nm=0; nm < model->nmaterials; nm++)
 	{
 		//declare array variable corresponding to models
@@ -423,7 +417,7 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 		tex_file += model->materials[nm]->texture1_map.name;
 //		osg::ref_ptr<osg::TextureRectangle> texture = 0;
 		osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
-
+		std::cout << "Texture - " << model->materials[nm]->texture1_map.name << endl;
 		// Activate texture
 		if (!tex_file.empty())
 		{
@@ -460,9 +454,13 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 					int index = mesh->faces[(*Iter)].index[vv];
 //					cout << mesh->vertices[index][0] << "," << mesh->vertices[index][1] << "," << mesh->vertices[index][2] << endl;
 					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
-					faceArray->push_back(id++);
-					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1 - mesh->texcos[index][1])); // caution to texture coordinate
+					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1-mesh->texcos[index][1])); // caution to texture coordinate
 				}
+				std::vector<int > tmpFace;
+				for(int i=0; i<3; i++) tmpFace.push_back(id++);
+				faceArray->push_back(tmpFace[0]);
+				faceArray->push_back(tmpFace[2]);
+				faceArray->push_back(tmpFace[1]);
 			}
 		}
 

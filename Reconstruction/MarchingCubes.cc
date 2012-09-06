@@ -128,7 +128,8 @@ namespace PTAMM{
 	/*
 	 * 生成したデータの保存
 	 */
-	void MarchingCubes::save(const char * filename){
+	void MarchingCubes::save(const char * filename)
+	{
 		// Creation of the reserved directory
 		ostringstream directoryName;
 		ostringstream com;
@@ -144,7 +145,8 @@ namespace PTAMM{
 		// Reserve the material setting
 		sModel->nmaterials = texSize;
 		sModel->materials = new Lib3dsMaterial*[texSize];
-		REP(m,texSize){
+		REP(m,texSize)
+		{
 			ostringstream textureFilename;
 			textureFilename << "texture" << m;
 			sModel->materials[m] = lib3ds_material_new(textureFilename.str().c_str() );
@@ -179,8 +181,8 @@ namespace PTAMM{
 					}
 				}
 
-				IplImage * resize_image = cvCreateImage(cvSize(512,512), IPL_DEPTH_8U, 3);
-	//			IplImage * resize_image = cvCreateImage(cvSize(WIDTH,HEIGHT), IPL_DEPTH_8U, 3);
+//				IplImage * resize_image = cvCreateImage(cvSize(512,512), IPL_DEPTH_8U, 3);
+				IplImage * resize_image = cvCreateImage(cvSize(WIDTH,HEIGHT), IPL_DEPTH_8U, 3);
 				cvResize(dst_image, resize_image, CV_INTER_NN);
 				cvSaveImage( textureFilename.str().c_str(), resize_image);
 
@@ -219,16 +221,18 @@ namespace PTAMM{
 			for (i = mTriangles[tnum].begin(); i != mTriangles[tnum].end(); i++){
 				// Reserve the face setting
 				sModel->meshes[tnum]->faces[face_number].material = tnum;
+				int offset[]={0,2,1};
 				REP(id,3){
-					int index = face_number * 3 + id;
-					sModel->meshes[tnum]->faces[face_number].index[id] = index;
+					int index = face_number * 3 + offset[id];
+					sModel->meshes[tnum]->faces[face_number].index[offset[id]] = index;
 
-					sModel->meshes[tnum]->vertices[index][0] = (*i).point[id].coord[0];
-					sModel->meshes[tnum]->vertices[index][1] = (*i).point[id].coord[1];
-					sModel->meshes[tnum]->vertices[index][2] = (*i).point[id].coord[2];
+					const double scale = 300;
+					sModel->meshes[tnum]->vertices[index][0] = (*i).point[offset[id]].coord[0]*scale;
+					sModel->meshes[tnum]->vertices[index][1] = (*i).point[offset[id]].coord[1]*scale;
+					sModel->meshes[tnum]->vertices[index][2] = (*i).point[offset[id]].coord[2]*scale;
 
-					sModel->meshes[tnum]->texcos[index][0] = (*i).point[id].tex[0]/(float)WIDTH;
-					sModel->meshes[tnum]->texcos[index][1] = (*i).point[id].tex[1]/(float)HEIGHT;
+					sModel->meshes[tnum]->texcos[index][0] = (*i).point[offset[id]].tex[0]/(float)WIDTH;
+					sModel->meshes[tnum]->texcos[index][1] = (*i).point[offset[id]].tex[1]/(float)HEIGHT;
 				}
 				face_number++;
 			}
@@ -951,7 +955,7 @@ namespace PTAMM{
 			//3点すべてが画面上に収まっている場合は適切なテクスチャかどうか調べる
 			if( frag[0] && frag[1] && frag[2]){
 				//テクスチャ切り替えが発生
-				if(checkOptimalTextureNumber(tri , texture_number) );
+				if(checkOptimalTextureNumber(tri , texture_number) ){}
 				//テクスチャ番号に変更はない
 				else REP(id1,3) REP(id2,2) tri.point[id1].tex[id2] = w[id1][id2];
 			}

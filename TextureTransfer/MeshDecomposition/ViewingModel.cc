@@ -426,7 +426,7 @@ namespace TextureTransfer
 
 		ostringstream com;
 		com << "mv " << saveName.str().c_str() << " LSCM_texture0.bmp LSCM_texture1.bmp ~/NewARDiorama/ARDiorama/ARMM/Data/rec/";
-		if( system( com.str().c_str() ) );
+		if( system( com.str().c_str() ) ){}
 
 		cout << "Save 3DS..." << saveName.str().c_str() << endl;
 	}
