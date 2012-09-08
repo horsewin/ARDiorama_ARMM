@@ -382,6 +382,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 
 						// Draw in the current vertex of the object (Corner of current face)
 						if (textureOn){
+							mesh->texcos[index][0] /= 640;
+							mesh->texcos[index][1] /= 480;
 							glTexCoord2fv(mesh->texcos[index]);
 							tex++;
 						}

@@ -781,7 +781,7 @@ void osg_createHand(int index, float world_scale, float ratio)
 		}
 	}
 	hand_object_global_array.at(index)->setPosition(osg::Vec3d(0,0,0));
-	hand_object_global_array.at(index)->setNodeMask(castShadowMask); // added by Atsushi 2012/06/06
+	hand_object_global_array.at(index)->setNodeMask(0); // added by Atsushi 2012/06/06
 	shadowedScene->addChild( hand_object_global_array.at(index) );
 
 	//set rendering order
@@ -846,10 +846,10 @@ void osg_UpdateSoftTexture()
 
     osg::Vec3Array::iterator it( verts->begin() );
 
+    //set the position of each node
     REP(idx, resX*resY)
     {
 		*it++ = softT_coord[idx];
-//		printf("(%f,%f,%f)\n",softT_coord[idx].x(), softT_coord[idx].y(), softT_coord[idx].z());
     }
 
     verts->dirty();

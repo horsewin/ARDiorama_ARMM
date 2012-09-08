@@ -22,6 +22,8 @@
   <Category name="Category Origin" image="ReconstructedObjects/Reconstruction.png"> 
     <!--R Objects Start -->
     <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_2145" file="Voxel_2012_95_2145.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="Yasuhara_Keyboard" image="Testset.png" dir="ReconstructedObjects/Keyboard" file="keyboard.3ds" roll="0" pitch="
+0" yaw="0" />
     <!--R Objects End -->
   </Category>
 </PTAMM_Model_DB>

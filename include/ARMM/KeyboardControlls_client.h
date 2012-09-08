@@ -87,7 +87,7 @@ public:
 
 			case 79: {//o
 				string str(MODELDIR);
-				const char * file = "NewTorus.3ds";
+				const char * file = "Newcow.3ds";
 				str += file;
 				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.c_str());
 				LoadCheck(obj.get(), str.c_str());
@@ -98,12 +98,13 @@ public:
 			}
 
 			case 80: {//p
-				const char * str = "ARMM/Data/Model2/BlueCow.3ds";
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
-				LoadCheck(obj.get(), str);
-				double scale = 10; //サーバ側の値から決定した for cow
-//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("ARMM/Data/ModelApple/apple.3ds", "ARMM/Data/ModelApple/"));
-//				double scale = 300; //サーバ側の値から決定した for apple
+//				const char * str = "ARMM/Data/Model2/BlueCow.3ds";
+//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
+//				LoadCheck(obj.get(), str);
+//				double scale = 10; //サーバ側の値から決定した for cow
+				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("ARMM/Data/ModelApple/apple.3ds", "ARMM/Data/ModelApple/"));
+//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/Keyboard/keyboard.3ds", "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/Keyboard/"));
+				double scale = 300; //サーバ側の値から決定した for apple
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
@@ -130,7 +131,7 @@ public:
 
 				//swap a child of the objects node with new child node
 				obj_transform_array[collidedNodeInd]->setChild(childInd, osgDB::readNodeFile(str.c_str()));
-
+				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(10,10,10));
 				collision = false;
 				break;
 			}
@@ -140,7 +141,7 @@ public:
 
 				//parts node
 				string str(MODELDIR);
-				const char * file = "LSCM_NewTorus1.bmp";
+				const char * file = "texture1.bmp";
 				str += file;
 				objTexture = osgCreateSoft(str.c_str());
 				LoadCheck(objTexture.get(), str.c_str());
