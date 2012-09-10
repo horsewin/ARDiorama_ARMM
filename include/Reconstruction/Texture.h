@@ -26,11 +26,12 @@ public:
 
 	size_t  getWidth( void ) const;
 	size_t  getHeight( void ) const;
+
 	const std::vector< Buftype > & getData( void ) const;
 
 	void  bind( void ) const;
 	void  unbind( void ) const;
-  
+
 	void  draw( void ) const;//for debug
 	int		getTex_id( void ) const{ return (int)tex_id; }
 
@@ -38,8 +39,8 @@ private:
 	unsigned  tex_width;
 	unsigned  tex_height;
 	std::vector< Buftype >  data;
-  
-	unsigned  tex_id; 
+
+	unsigned  tex_id;
 };
 
 #endif

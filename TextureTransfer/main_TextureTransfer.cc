@@ -827,13 +827,13 @@ void Init()
 	models[0]->LoadTexture("texture1.bmp");
 	models[0]->ConvertDataStructure();
 	models[0]->mLSCM->run("CG","");
-	models[0]->mLSCM->mMesh->save("Model3DS/test2.obj");
+	models[0]->mLSCM->mMesh->Save("Model3DS/test2.obj");
 	models[0]->mLSCM->mMesh->FindTextureMax();
 
 	models[1]->LoadTexture("Hatsune2.bmp");
 	models[1]->ConvertDataStructure();
 	models[1]->mLSCM->run("CG","");
-	models[1]->mLSCM->mMesh->save("Model3DS/voxel3.obj");
+	models[1]->mLSCM->mMesh->Save("Model3DS/voxel3.obj");
 	models[1]->mLSCM->mMesh->FindTextureMax();
 
 	controller.InitHashmap();

@@ -826,6 +826,7 @@ namespace PTAMM {
 			if (*gvnTracking) {
 				armm->Run();
 			}
+
 			mGLWindow.swap_buffers();
 			mGLWindow.HandlePendingEvents();
 		}

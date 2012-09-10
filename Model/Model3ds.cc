@@ -6,19 +6,23 @@
 #include "PTAMTracking/Utils.h"
 
 #include <gvars3/instances.h>
+#include <cvd/image_io.h>
 
 #include <iostream>
+
 #include "myCVmethod.h"
 #include "common.h"
 
-#include <cvd/image_io.h>
 
-namespace PTAMM {
+namespace PTAMM
+{
 
 using namespace std;
 using namespace CVD;
 using namespace GVars3;
 
+boost::shared_ptr<TextureTransfer::LSCM> pLSCM;
+std::deque<Texture *> pTexturesList;
 /**
  * Constructor
  */
@@ -44,7 +48,8 @@ Model3DS::~Model3DS() {
  * This is the internal load function that the other external ones call.
  * @return success
  */
-bool Model3DS::_Load() {
+bool Model3DS::_Load()
+{
 	if (mbLoaded) {
 		cout << "Model " << msName << " already loaded" << endl;
 		return false;
@@ -61,12 +66,16 @@ bool Model3DS::_Load() {
 
 	// Load the textures
 	//Texture loader 2011.6.6
-	std::deque<Texture *> texturesList; // A set of Textures 2011.6.7
-	texturesList = _LoadTextures(pModel, msModelDir);
+	pTexturesList = _LoadTextures(pModel, msModelDir);
+
+	//Save a texture image integrated all texture images
+	//Apply LSCM texture unwrapping
+	//2012.9.10
+	IntegrationTextures(pModel, msModelDir);
 
 	// generate the display lists
 	//  mnDisplayList[0] = _GenerateDisplayList( pModel, false ); // polygon
-	mnDisplayList[0] = _GenerateDisplayList(pModel, false, texturesList); // polygon
+	mnDisplayList[0] = _GenerateDisplayList(pModel, false, pTexturesList); // polygon
 	mnDisplayList[1] = _GenerateDisplayList(pModel, true); // wireframe
 
 	//failed to create display lists
@@ -92,7 +101,8 @@ bool Model3DS::_Load() {
  * @return success
  */
 bool Model3DS::Load(std::string sModelDir, std::string sFileName, TooN::Vector<
-		3> v3Rotation) {
+		3> v3Rotation)
+{
 	msModelDir = sModelDir;
 	msModelFile = sFileName;
 	if (_Load()) {
@@ -115,7 +125,14 @@ bool Model3DS::Load(std::string sModelDir, std::string sFileName, TooN::Vector<
 /**
  * Draw the model
  */
-void Model3DS::Draw() {
+void Model3DS::Draw()
+{
+	if(mIntegrate)
+	{
+		DrawTextureMonitor(0,0,W_WIDTH,W_HEIGHT);
+		return;
+	}
+
 	//is there a load from a saved map waiting?
 	if (mbDelayedLoad) {
 		_DelayedLoad();
@@ -157,11 +174,238 @@ void Model3DS::Draw() {
 
 }
 
+void Model3DS::DrawTextureMonitor(int x, int y, int w, int h)
+{
+	glViewport(x, y, w, h);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(pLSCM->mMesh->mTexMin.x, pLSCM->mMesh->mTexMax.x,
+			pLSCM->mMesh->mTexMin.y, pLSCM->mMesh->mTexMax.y, 0,
+			1.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0); //default view point
+
+	//for rendering texture deployments
+	glLineWidth(1);
+	glBegin(GL_TRIANGLES);
+	TextureTransfer::IndexedMesh * im = pLSCM->mMesh.get();
+
+	REP(faceIdx, im->mFaces.size() )
+	{
+		REP(verIdx, im->mFaces[faceIdx].size()) {
+			TextureTransfer::Vector2 texel;
+			int index = im->mFaces[faceIdx].at(verIdx);
+			texel.x = im->mVertices[index].tex_coord.x;
+			texel.y = im->mVertices[index].tex_coord.y;
+
+			glColor3b(im->mVertices[index].tex_color.red, im->mVertices[index].tex_color.green, im->mVertices[index].tex_color.blue);
+			glVertex2f(texel.x, texel.y);
+		}
+	}
+	glEnd();
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+/*
+ * pModel: an 3DS object
+ */
+void Model3DS::IntegrationTextures(Lib3dsFile * pModel, std::string msModelDir)
+{
+	using namespace TextureTransfer;
+
+	pLSCM = boost::shared_ptr<LSCM>(new LSCM());
+	vector< boost::shared_ptr<TextureTransfer::IndexedMesh> > pMesh;
+
+	Load3DSModel(pModel, pLSCM, pMesh);
+	ConvertDataStructure(pLSCM, pMesh);
+
+	IndexedMesh * im = pLSCM->mMesh.get();
+
+	//Get RGB color corresponding to each vertex
+	REP(faceIdx, im->mFaces.size() )
+	{
+		REP(verIdx, im->mFaces[faceIdx].size())
+		{
+			Vector2 texcoord;
+			int index = im->mFaces[faceIdx].at(verIdx);
+			texcoord.x = im->mVertices[index].tex_coord.x;
+			texcoord.y = im->mVertices[index].tex_coord.y;
+
+			int textureIdx = im->mVertices[index].mTexID;
+			if(static_cast<int>(pTexturesList.size()) <= textureIdx || textureIdx < 0)
+			{
+				im->mVertices[index].tex_color = Rgb<byte>(0,0,0);
+				break;
+			}
+			vector< Texture::Buftype > colorMap = pTexturesList[textureIdx]->getData();
+			const int w = pTexturesList[textureIdx]->getWidth();
+			const int h = pTexturesList[textureIdx]->getHeight();
+			assert(0 <= texcoord.x && texcoord.x < w);
+			assert(0 <= texcoord.y && texcoord.y < h);
+			im->mVertices[index].tex_color = colorMap[texcoord.x + texcoord.y*w];
+//			cout << im->mVertices[index].tex_color <<  "<" << index << "," << textureIdx << ">";
+//			printf("(%f,%f)\n",texcoord.x, texcoord.y);
+		}
+	}
+
+	//texture unwrapping by LSCM
+	pLSCM->run("CG","");
+	pLSCM->mMesh->Save("object1.obj");
+	pLSCM->mMesh->FindTextureMax();
+
+	//create one texture image
+//	REP(faceIdx, im->mFaces.size() )
+//	{
+//		REP(verIdx, im->mFaces[faceIdx].size())
+//		{
+//
+//		}
+//	}
+	mIntegrate = true;
+}
+
+void Model3DS::Load3DSModel(Lib3dsFile * pModel, boost::shared_ptr<TextureTransfer::LSCM> pLSCM,
+		vector< boost::shared_ptr<TextureTransfer::IndexedMesh> > & pMesh)
+{
+	using namespace TextureTransfer;
+
+	assert(pModel);
+
+	::Lib3dsMesh *mesh; //メッシュ単位
+
+	//メッシュ分メモリ確保
+	REP(i,pModel->nmeshes)
+	{
+		pMesh.push_back( boost::shared_ptr<IndexedMesh>(new IndexedMesh()) );
+		printf("Mesh(%d)-> V=%d, F=%d\n",i, pModel->meshes[i]->nvertices, pModel->meshes[i]->nfaces);
+	}
+
+	int nface = 0;
+	REP(loop,pModel->nmeshes)
+	{
+		mesh = pModel->meshes[loop]; //mLoop番目のメッシュへのポインタ
+		nface += mesh->nfaces;
+		if (mesh->nfaces == 0)
+		{
+			pMesh[loop]->mNumIndex = 0;
+			continue;
+		} //メッシュが無い場合はカット
+
+		//法線データの取り出し
+		float (*normal)[3] = new float[mesh->nfaces][3];
+		lib3ds_mesh_calculate_face_normals(mesh, &normal[0]); //面法線の取り出し
+
+		pMesh[loop]->mNumIndex = mesh->nvertices;
+
+		//頂点データと法線データをインデックスに合わせて格納
+		for (int loopVer = 0; loopVer < mesh->nvertices; ++loopVer)
+		{
+			Vector3 tmp(mesh->vertices[loopVer][0],mesh->vertices[loopVer][1],mesh->vertices[loopVer][2]);
+			Vector2 tmpTexel(0,0);
+
+			if(mesh->texcos)
+			{
+				tmpTexel.x = mesh->texcos[loopVer][0];
+				tmpTexel.y = mesh->texcos[loopVer][1];
+			}
+			pMesh[loop]->AddVertex(tmp, tmpTexel);
+		}
+
+		//面データに対応する頂点情報を格納
+		REP(loopFace, mesh->nfaces)
+		{
+			pMesh[loop]->BeginFacet();
+
+			//reserve vertex information
+			REP(loopVer,3)
+			{
+				unsigned short int loopIndex =
+						mesh->faces[loopFace].index[loopVer];
+				pMesh[loop]->AddVertex2Facet(loopIndex);
+				pMesh[loop]->mVertices[loopIndex].normal = normal[loopFace];
+				pMesh[loop]->mVertices[loopIndex].mTexID = mesh->faces[loopFace].material;
+
+			}
+			pMesh[loop]->EndFacet();
+
+			// 現在のメッシュの3頂点に対してインデックスの設定
+			REP(loopVer,3)
+			{
+				pMesh[loop]->mVertices[mesh->faces[loopFace].index[loopVer]].allIndex = 0;
+				// インデックス番号の重複をさけるために
+				// これまでのメッシュグループのインデックス最大値を足す
+				REP(i,loop)
+				{
+					pMesh[loop]->mVertices[mesh->faces[loopFace].index[loopVer]].allIndex += pMesh[i]->mVertices.size();
+				}
+
+				//set index
+				pMesh[loop]->mVertices[mesh->faces[loopFace].index[loopVer]].allIndex +=
+						mesh->faces[loopFace].index[loopVer];
+			}
+		}
+
+		delete[] normal;
+	}
+}
+
+/*
+ * 複数のメッシュ集合を1つにする
+ * TODO mesh synthesis
+ */
+void Model3DS::ConvertDataStructure(boost::shared_ptr<TextureTransfer::LSCM> pLSCM,
+										vector< boost::shared_ptr<TextureTransfer::IndexedMesh> > pMesh)
+{
+	using namespace TextureTransfer;
+
+	//for texture deployment
+	cout << "Convert to LSCM data structure" << endl;
+
+	REP(loopMesh, pMesh.size())
+	{
+		REP(verIdx, pMesh[loopMesh]->mVertices.size())
+		{
+			pLSCM->mMesh->AddVertex(pMesh[loopMesh]->mVertices[verIdx].point, pMesh[loopMesh]->mVertices[verIdx].tex_coord);
+
+			//init texture number information
+			pLSCM->mMesh->mVertices[verIdx].textureNumber = loopMesh;
+
+			pLSCM->mMesh->mVertices[verIdx].mTexID = pMesh[loopMesh]->mVertices[verIdx].mTexID;
+		}
+	}
+
+	//面との連結情報の格納
+	int sumOfVertices = 0;
+	REP(loopMesh, pMesh.size())
+	{
+		REP(faceIdx, pMesh[loopMesh]->mFaces.size())
+		{
+			pLSCM->mMesh->BeginFacet();
+			REP(vertexIdx, pMesh[loopMesh]->mFaces[faceIdx].size())
+			{
+				int index = pMesh[loopMesh]->mFaces[faceIdx].at(vertexIdx);
+				pLSCM->mMesh->AddVertex2Facet(index + sumOfVertices);
+			}
+			pLSCM->mMesh->EndFacet();
+		}
+		sumOfVertices += pMesh[loopMesh]->mVertices.size();
+	}
+
+	std::cout << "Converted : " << pLSCM->mMesh->mVertices.size()
+			<< " vertices and " << pLSCM->mMesh->mFaces.size() << " facets"
+			<< std::endl;
+}
+
 /**
  * Generate the display lists for the 3D model
  * @return the list reference
  */
-GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe) {
+GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe)
+{
 	assert( pModel );
 
 	//some defaults
@@ -255,7 +499,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 	Lib3dsMesh *mesh;
 	//材質データ構造のメモリ確保
 	materials.resize(pModel->nmaterials);
-	for (int loop = 0; loop < pModel->nmaterials; ++loop) {
+	for (int loop = 0; loop < pModel->nmaterials; ++loop)
+	{
 		material = pModel->materials[loop];//loop番目のマテリアル
 		//ambient
 		memcpy(materials[loop].ambient, material->ambient,
@@ -381,9 +626,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 //						glNormal3fv(v3Norm);
 
 						// Draw in the current vertex of the object (Corner of current face)
-						if (textureOn){
-							mesh->texcos[index][0] /= 640;
-							mesh->texcos[index][1] /= 480;
+						if (textureOn)
+						{
 							glTexCoord2fv(mesh->texcos[index]);
 							tex++;
 						}
@@ -825,6 +1069,8 @@ deque<Texture *> Model3DS::_LoadTextures(Lib3dsFile * pModel, string dirpath)
 			Texture* tmpTexture = new Texture(
 					static_cast<const ::ImageType> (TextureRGB));
 			texList.push_back(tmpTexture);
+
+			vector< Texture::Buftype > colorMap = tmpTexture->getData();
 		}
 	}
 	return (texList);

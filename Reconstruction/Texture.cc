@@ -82,6 +82,7 @@ size_t  Texture::getHeight( void )const{
 const std::vector< Texture::Buftype > & Texture::getData( void ) const {
 	return this->data;
 }
+
 void Texture::draw( void ) const{
 	bind( );
 

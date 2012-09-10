@@ -251,7 +251,7 @@ namespace TextureTransfer
 
 	//	IndexedMesh * tmpMesh = mLSCM[0]->mesh_.get();
 		IndexedMesh * tmpMesh = mLSCM->mMesh.get();
-		tmpMesh->clear();
+		tmpMesh->Clear();
 		while(input) {
 			char line[1024] ;
 			input.getline(line, 1024) ;
@@ -261,11 +261,11 @@ namespace TextureTransfer
 			if(keyword == "v") {
 				Vector3 p ;
 				line_input >> p.x >> p.y >> p.z ;
-				tmpMesh->add_vertex(p, Vector2(0,0)) ;
+				tmpMesh->AddVertex(p, Vector2(0,0)) ;
 			}else if(keyword == "vt") {
 			 // Ignore tex vertices
 			}else if(keyword == "f") {
-				tmpMesh->begin_facet() ;
+				tmpMesh->BeginFacet() ;
 				while(line_input) {
 					std::string s ;
 					line_input >> s ;
@@ -273,7 +273,7 @@ namespace TextureTransfer
 						std::stringstream v_input(s.c_str()) ;
 						int index ;
 						v_input >> index ;
-						tmpMesh->add_vertex_to_facet(index - 1) ;
+						tmpMesh->AddVertex2Facet(index - 1) ;
 						char c ;
 						v_input >> c ;
 						if(c == '/') {
@@ -282,7 +282,7 @@ namespace TextureTransfer
 						}
 					}
 				}
-				tmpMesh->end_facet() ;
+				tmpMesh->EndFacet() ;
 			}
 		}
 		std::cout << "Loaded OBJ file :" << tmpMesh->mVertices.size() << " vertices and "
@@ -763,7 +763,7 @@ namespace TextureTransfer
 			int nFaces = GetMeshIndicesSum(loop)/3;
 			for(int loopv=0; loopv<nFaces; loopv++){
 	//			mLSCM[0]->mesh_->begin_facet();
-				mLSCM->mMesh->begin_facet();
+				mLSCM->mMesh->BeginFacet();
 				REP(id,3){
 					Vector3 vertex;
 					vertex.x = mMesh[loop].vertex[loopv*9 + id*3 + 0];
@@ -773,10 +773,10 @@ namespace TextureTransfer
 					//set vertex value
 	//				mLSCM->mesh_->add_vertex(vertex, Vector2(0,0));
 	//				mLSCM[0]->mesh_->add_vertex(vertex, Vector2(0,0));
-					mLSCM->mMesh->add_vertex(vertex, Vector2(0,0));
+					mLSCM->mMesh->AddVertex(vertex, Vector2(0,0));
 
 					//set index corresponding to the vertex
-					mLSCM->mMesh->add_vertex_to_facet(sumIndices + loopv*3 + id);
+					mLSCM->mMesh->AddVertex2Facet(sumIndices + loopv*3 + id);
 	//				mLSCM[0]->mesh_->add_vertex_to_facet(sumIndices + loopv*3 + id);
 	//				cout << sumIndices + loopv*3 + id << endl;
 
@@ -785,7 +785,7 @@ namespace TextureTransfer
 					mLSCM->mMesh->mTextureNumber.push_back(0);
 				}
 	//			mLSCM[0]->mesh_->end_facet();
-				mLSCM->mMesh->end_facet();
+				mLSCM->mMesh->EndFacet();
 			}
 			sumIndices += nFaces*3;
 		}

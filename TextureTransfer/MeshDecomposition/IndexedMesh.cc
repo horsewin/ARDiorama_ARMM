@@ -82,41 +82,41 @@ namespace TextureTransfer
 	#endif
 	}
 
-	Vertex* IndexedMesh::add_vertex() {
+	Vertex* IndexedMesh::AddVertex() {
 	  mVertices.push_back(Vertex()) ;
 	  mVertices.rbegin()->id = mVertices.size() - 1 ;
 	  return &*(mVertices.rbegin()) ;
 	}
 
-	Vertex* IndexedMesh::add_vertex(const Vector3& p, const Vector2& t) {
+	Vertex* IndexedMesh::AddVertex(const Vector3& p, const Vector2& t) {
 	  mVertices.push_back(Vertex(p,t)) ;
 	  mVertices.rbegin()->id = mVertices.size() - 1 ;
 	  return &*(mVertices.rbegin()) ;
 	}
 
-	void IndexedMesh::begin_facet() {
+	void IndexedMesh::BeginFacet() {
 	  assert(!mInFacet) ;
 	  mFaces.push_back(Facet()) ;
 	  mInFacet = true ;
 	}
 
-	void IndexedMesh::end_facet() {
+	void IndexedMesh::EndFacet() {
 	  assert(mInFacet) ;
 	  mInFacet = false ;
 	}
 
-	void IndexedMesh::add_vertex_to_facet(unsigned int i) {
+	void IndexedMesh::AddVertex2Facet(unsigned int i) {
 	  assert(mInFacet) ;
 	  assert(i < mVertices.size()) ;
 	  mFaces.rbegin()->push_back(i) ;
 	}
 
-	void IndexedMesh::clear() {
+	void IndexedMesh::Clear() {
 	  mVertices.clear() ;
 	  mFaces.clear() ;
 	}
 
-	void IndexedMesh::save(const std::string& file_name) {
+	void IndexedMesh::Save(const std::string& file_name) {
 	  unsigned int i,j ;
 	  std::ofstream out(file_name.c_str()) ;
 

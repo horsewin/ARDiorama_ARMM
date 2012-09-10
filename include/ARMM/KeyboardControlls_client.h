@@ -137,8 +137,8 @@ public:
 			}
 
 			//creating a texture sticked in hand when collision occurred
-			case 101:{
-
+			case 101:
+			{
 				//parts node
 				string str(MODELDIR);
 				const char * file = "texture1.bmp";
