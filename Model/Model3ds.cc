@@ -193,18 +193,33 @@ void Model3DS::DrawTextureMonitor(int x, int y, int w, int h)
 	glBegin(GL_TRIANGLES);
 	TextureTransfer::IndexedMesh * im = pLSCM->mMesh.get();
 
+	int texNumber = 0;
+	pTexturesList[texNumber]->bind();
 	REP(faceIdx, im->mFaces.size() )
 	{
-		REP(verIdx, im->mFaces[faceIdx].size()) {
-			TextureTransfer::Vector2 texel;
+		REP(verIdx, im->mFaces[faceIdx].size())
+		{
 			int index = im->mFaces[faceIdx].at(verIdx);
-			texel.x = im->mVertices[index].tex_coord.x;
-			texel.y = im->mVertices[index].tex_coord.y;
 
-			glColor3b(im->mVertices[index].tex_color.red, im->mVertices[index].tex_color.green, im->mVertices[index].tex_color.blue);
-			glVertex2f(texel.x, texel.y);
+			if(texNumber != im->mVertices[index].mTexID)
+			{
+				pTexturesList[texNumber]->unbind();
+				texNumber = im->mVertices[index].mTexID;
+				pTexturesList[texNumber]->bind();
+			}
+
+			GLfloat vertex[2], texel[2];
+			vertex[0] = im->mVertices[index].tex_coord.x;
+			vertex[1] = im->mVertices[index].tex_coord.y;
+
+			texel[0] = im->mVertices[index].tex_coord2.x / 640;
+			texel[1] = im->mVertices[index].tex_coord2.y / 480;
+//			glColor3b(im->mVertices[index].tex_color.red, im->mVertices[index].tex_color.green, im->mVertices[index].tex_color.blue);
+			glTexCoord2fv(texel);
+			glVertex2fv(vertex);
 		}
 	}
+	pTexturesList[texNumber]->unbind();
 	glEnd();
 
 	glEnable(GL_DEPTH_TEST);
@@ -238,15 +253,21 @@ void Model3DS::IntegrationTextures(Lib3dsFile * pModel, std::string msModelDir)
 			int textureIdx = im->mVertices[index].mTexID;
 			if(static_cast<int>(pTexturesList.size()) <= textureIdx || textureIdx < 0)
 			{
-				im->mVertices[index].tex_color = Rgb<byte>(0,0,0);
+//				im->mVertices[index].tex_color = Rgb<byte>(0,0,0);
+				im->mVertices[index].tex_coord2 = texcoord;
 				break;
 			}
-			vector< Texture::Buftype > colorMap = pTexturesList[textureIdx]->getData();
-			const int w = pTexturesList[textureIdx]->getWidth();
-			const int h = pTexturesList[textureIdx]->getHeight();
-			assert(0 <= texcoord.x && texcoord.x < w);
-			assert(0 <= texcoord.y && texcoord.y < h);
-			im->mVertices[index].tex_color = colorMap[texcoord.x + texcoord.y*w];
+			else
+			{
+				im->mVertices[index].tex_coord2.x = 0;
+				im->mVertices[index].tex_coord2.y = 0;
+			}
+//			vector< Texture::Buftype > colorMap = pTexturesList[textureIdx]->getData();
+//			const int w = pTexturesList[textureIdx]->getWidth();
+//			const int h = pTexturesList[textureIdx]->getHeight();
+//			assert(0 <= texcoord.x && texcoord.x < w);
+//			assert(0 <= texcoord.y && texcoord.y < h);
+//			im->mVertices[index].tex_color = colorMap[texcoord.x + texcoord.y*w];
 //			cout << im->mVertices[index].tex_color <<  "<" << index << "," << textureIdx << ">";
 //			printf("(%f,%f)\n",texcoord.x, texcoord.y);
 		}
