@@ -226,7 +226,7 @@ namespace PTAMM{
 					int index = face_number * 3 + offset[id];
 					sModel->meshes[tnum]->faces[face_number].index[offset[id]] = index;
 
-					const double scale = 300;
+					const double scale = 30;
 					sModel->meshes[tnum]->vertices[index][0] = (*i).point[offset[id]].coord[0]*scale;
 					sModel->meshes[tnum]->vertices[index][1] = (*i).point[offset[id]].coord[1]*scale;
 					sModel->meshes[tnum]->vertices[index][2] = (*i).point[offset[id]].coord[2]*scale;

@@ -34,6 +34,10 @@
 //Keyboard controller
 #include "ARMM/KeyboardControlls_client.h"
 
+//to get FPS calculation
+#include "TickCounter.h"
+
+//standard API
 #include <stdio.h>
 
 using namespace std;
@@ -88,7 +92,7 @@ namespace ARMM
 	// Constant/Define
 	//---------------------------------------------------------------------------
 	const float OSG_SCALE = 10;
-	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.135"; //this value depends on IP address assigned computer
+	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.106"; //this value depends on IP address assigned computer
 
 	//---------------------------------------------------------------------------
 	// Code
@@ -514,8 +518,10 @@ namespace ARMM
 	void ARMM::Run()
 	{
 
-		IplImage *arImage = capture->getFrame();
+//		TickCountAverageBegin();
 		armm_client->mainloop();
+//		TickCountAverageEnd();
+		IplImage *arImage = capture->getFrame();
 		RenderScene(arImage, capture);
 		cvReleaseImage(&arImage);
 #ifdef USE_CLIENT_SENDER
@@ -533,7 +539,7 @@ namespace ARMM
 
 		if( touch && stroke )
 		{
-			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
+			collidedNodeInd = (obj_transform_array.size()-1) - (objectIndex - collisionInd);
 			GetCollisionCoordinate(collidedNodeInd);
 		}
 		if(transfer == 1)
@@ -542,16 +548,16 @@ namespace ARMM
 
 			cout << "Last Collided obj index = " << collisionInd	 << endl;
 			cout << "All of Object index = " << objectIndex  << endl;
-			collidedNodeInd = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
+			collidedNodeInd = (obj_transform_array.size()-1) - (objectIndex - collisionInd);
 			output << "d " << endl; //as delimitar
 			GetCollisionCoordinate(collidedNodeInd);
 
-			//Running "Texture Transfer exe"
-			stringstream str("sh TT.sh ");
-			system(str.str().c_str());
+//			//Running "Texture Transfer exe"
+//			stringstream str("sh TT.sh ");
+//			system(str.str().c_str());
 
 			//clear "Touch" sentence
-			fontText->setText("");
+//			fontText->setText("");
 
 			//swap the collided object
 			kc->set_input(100);
@@ -772,10 +778,7 @@ namespace ARMM
 
 						cout << "Collided obj  index = " << collisionInd	 << endl;
 						cout << "All of Object index = " << objectIndex  << endl;
-						int ind = (obj_fonts_array.size()-1) - (objectIndex - collisionInd);
-						osg::Geode * fontGeode = obj_fonts_array[ind]->getChild(0)->asGeode();
-						fontText = dynamic_cast< osgText::Text* >(fontGeode->getDrawable(0));
-						fontText->setText("TOUCH!!");
+						int ind = (obj_transform_array.size()-1) - (objectIndex - collisionInd);
 
 						//make the updater for soft texture ON
 						softTexture = true;

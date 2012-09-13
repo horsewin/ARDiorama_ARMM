@@ -66,8 +66,8 @@ typedef unsigned int uint;
 typedef unsigned char uchar;
 
 //window size
-const int WINDOW_WIDTH  = 640;
-const int WINDOW_HEIGHT = 480;
+const int WINDOW_WIDTH  = 1280;
+const int WINDOW_HEIGHT = 960;
 
 //for virtual hands
 const int MAX_NUM_HANDS = 1;
@@ -134,13 +134,14 @@ public:
 		// Create a local light.
 		light = new osg::Light;
 		light->setLightNum(0);
-		light->setPosition(osg::Vec4(-5.0f, -5.0f, 500.0, 0.0f));
-		light->setAmbient(osg::Vec4(0.1f,0.1f,0.1f,1.0f));
+		light->setPosition(osg::Vec4(-5.0f, -5.0f, 50.0, 0.0f));
+		light->setAmbient(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		light->setDiffuse(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
 		light->setSpecular(osg::Vec4(0.7f,0.7f,0.7f,1.0f));
 		light->setConstantAttenuation(0.f);
-		light->setLinearAttenuation(0.f);
+		light->setLinearAttenuation(1.f);
 		light->setQuadraticAttenuation(0.f);
+
 
 		osg::LightSource* lightSource = new osg::LightSource;	
 		lightSource->setLight(light);
@@ -253,7 +254,6 @@ public:
 	std::vector<osg::ref_ptr<osg::Node> > obj_node_array;
 	std::vector<osg::PositionAttitudeTransform*> obj_transform_array;
 	//	std::vector<osg::Drawable *> obj_d_array;
-	std::vector<osg::PositionAttitudeTransform*> obj_fonts_array;
 
 	//for soft texture
 	osg::ref_ptr<osg::Node> objTexture;
@@ -381,7 +381,7 @@ void osg_inittracker(string markerName, int maxLengthSize, int maxLengthScale)
 //	double scale = 180.1812; //サーバ側の値から決定した
 //	double scale = 300; //サーバ側の値から決定した
 //	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
-//	car_trans1->addChild(osg3DSFileFromDiorama("/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/cube/cube.3ds", "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/cube/"));
+//	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/Keyboard/keyboard.3ds", "ARMM/Data/Keyboard/"));
 //	car_trans1->addChild(createCube());
 	car_trans1->addChild(car1.get()); // car version
 
@@ -620,7 +620,6 @@ void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Qua
 	for(uint i = 0; i < v_array.size(); i++) {
 		obj_transform_array.at(i)->setAttitude(q_array.at(i));
 		obj_transform_array.at(i)->setPosition(v_array.at(i));
-		obj_fonts_array.at(i)->setPosition(v_array.at(i));
 	}
 
 	if(softTexture)
@@ -701,12 +700,6 @@ void osgAddObjectNode(osg::Node* n) {
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 
-		//for debug
-		obj_fonts_array.push_back(new osg::PositionAttitudeTransform());
-		obj_fonts_array.at(index)->addChild(CreateFontData(index));
-		shadowedScene->addChild( obj_fonts_array.at(index) );
-		obj_fonts_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
-
 		objectIndex++;
 
 		printf("Client Object number: %d(ALL=%d) added \n", index+1, objectIndex);
@@ -734,11 +727,28 @@ void osgAddObjectNode(osg::Node* n, const double & scale)
 		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 
-		//for debug
-		obj_fonts_array.push_back(new osg::PositionAttitudeTransform());
-		obj_fonts_array.at(index)->addChild(CreateFontData(index));
-		shadowedScene->addChild( obj_fonts_array.at(index) );
-		obj_fonts_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+		objectIndex++;
+
+		printf("Client Object number: %d added \n", index+1);
+}
+
+void osgAddObjectNode(osg::Node* n, const double & scale, const osg::Quat & quat)
+{
+		obj_node_array.push_back(n);
+
+		obj_transform_array.push_back(new osg::PositionAttitudeTransform());
+		int index = obj_node_array.size()-1;
+
+		obj_transform_array.at(index)->setAttitude(quat);
+		obj_transform_array.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
+		obj_transform_array.at(index)->setScale(osg::Vec3d(scale,scale,scale));
+
+		obj_transform_array.at(index)->setNodeMask(castShadowMask);
+
+		obj_transform_array.at(index)->addChild(obj_node_array.at(index));
+		shadowedScene->addChild( obj_transform_array.at(index) );
+		obj_transform_array.at(index)->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
+		shadowedScene->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin");
 
 		objectIndex++;
 

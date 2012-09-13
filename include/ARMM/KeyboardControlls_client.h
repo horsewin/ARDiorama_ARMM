@@ -47,6 +47,8 @@ extern int collidedNodeInd;
 const float CUBE_SIZE = 4;
 const float SPHERE_SIZE = 2;//FULL SIZE
 
+static const char * DATABASEDIR = "/home/umakatsu/Dropbox/Lab/ModelDatabase/";
+
 using namespace std;
 
 class KeyboardController_client
@@ -86,29 +88,41 @@ public:
 				break;
 
 			case 79: {//o
-				string str(MODELDIR);
-				const char * file = "Newcow.3ds";
-				str += file;
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.c_str());
-				LoadCheck(obj.get(), str.c_str());
-				float scale = 10;
+				ostringstream str;
+				const char * FILENAME = "GreenCow";
+				const char * FORMAT = ".3ds";
+				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+				LoadCheck(obj.get(), str.str().c_str());
+//				float scale = 0.005;//GreenTable
+				float scale = 10;//GreenTorus
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
 			}
 
 			case 80: {//p
-//				const char * str = "ARMM/Data/Model2/BlueCow.3ds";
-//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str);
-//				LoadCheck(obj.get(), str);
-//				double scale = 10; //サーバ側の値から決定した for cow
-				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("ARMM/Data/ModelApple/apple.3ds", "ARMM/Data/ModelApple/"));
-//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama("/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/Keyboard/keyboard.3ds", "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/Keyboard/"));
-				double scale = 300; //サーバ側の値から決定した for apple
+//				ostringstream str;
+				const char * FORMAT = ".3ds";
+//				const char * FILENAME = "WoodTable";
+//				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+//				LoadCheck(obj.get(), str.str().c_str());
+//				float scale = 10;
+//				//安原モデルの場合、テクスチャ座標の調整が必要
+				string str(DATABASEDIR);
+				const char * FILENAME = "keyboard";
+				str += FILENAME; str+="/";
+				string modelFileName(FILENAME);
+				modelFileName += FORMAT;
+				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
+//				double scale = 40; //サーバ側の値から決定した for (Cube) for 安原モデル
+				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
 			}
+
 
 			case 68:
 				break;
@@ -117,9 +131,10 @@ public:
 
 			case 100: {// This function is called after texture transferred
 
-				string str(MODELDIR);
-				const char * file = "Newapple.3ds";
-				str += file;
+				ostringstream str;
+				const char * FILENAME = "GreenKeyboard";
+				const char * FORMAT = ".3ds";
+				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
 
 				//remove the texture image object
 				shadowedScene->removeChild(objTexture);
@@ -130,8 +145,10 @@ public:
 				               ->getChildIndex(obj_node_array[collidedNodeInd]);
 
 				//swap a child of the objects node with new child node
-				obj_transform_array[collidedNodeInd]->setChild(childInd, osgDB::readNodeFile(str.c_str()));
-				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(10,10,10));
+				obj_transform_array[collidedNodeInd]->setChild(childInd, osgDB::readNodeFile(str.str().c_str()));
+//				double scale = 40; //安原Cube
+				double scale = 300;
+				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(scale,scale,scale));
 				collision = false;
 				break;
 			}
@@ -140,8 +157,8 @@ public:
 			case 101:
 			{
 				//parts node
-				string str(MODELDIR);
-				const char * file = "texture1.bmp";
+				string str(DATABASEDIR);
+				const char * file = "GreenCow/LSCM_Newcow1.bmp";
 				str += file;
 				objTexture = osgCreateSoft(str.c_str());
 				LoadCheck(objTexture.get(), str.c_str());
@@ -157,9 +174,10 @@ public:
 //					));
 //				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
 				obj_pat->addChild(objTexture);
-
 				obj_texture = obj_pat;
 				shadowedScene->addChild(obj_texture);
+
+				//				shadowedScene->addChild(objTexture);
 				obj_texture->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
 				cout << "<<Create a texture image with ocurring collision>>" << endl;

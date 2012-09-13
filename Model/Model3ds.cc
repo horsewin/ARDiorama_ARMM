@@ -28,7 +28,7 @@ std::deque<Texture *> pTexturesList;
  */
 Model3DS::Model3DS() :
 	mbLoaded(false), msName("Default Name"), mdScaleMult(6.0), mdScale(exp(
-			-mdScaleMult)), mbDelayedLoad(false) {
+			-mdScaleMult)), mbDelayedLoad(false), mIntegrate(false) {
 }
 
 /**
@@ -67,15 +67,15 @@ bool Model3DS::_Load()
 	// Load the textures
 	//Texture loader 2011.6.6
 	pTexturesList = _LoadTextures(pModel, msModelDir);
-
+	std::deque<Texture *> textureLists = pTexturesList;
 	//Save a texture image integrated all texture images
 	//Apply LSCM texture unwrapping
 	//2012.9.10
-	IntegrationTextures(pModel, msModelDir);
+//	IntegrationTextures(pModel, msModelDir);
 
 	// generate the display lists
 	//  mnDisplayList[0] = _GenerateDisplayList( pModel, false ); // polygon
-	mnDisplayList[0] = _GenerateDisplayList(pModel, false, pTexturesList); // polygon
+	mnDisplayList[0] = _GenerateDisplayList(pModel, false, textureLists); // polygon
 	mnDisplayList[1] = _GenerateDisplayList(pModel, true); // wireframe
 
 	//failed to create display lists
@@ -129,7 +129,8 @@ void Model3DS::Draw()
 {
 	if(mIntegrate)
 	{
-		DrawTextureMonitor(0,0,W_WIDTH,W_HEIGHT);
+//		glColor3f(1.0, 1.0, 1.0);
+//		DrawTextureMonitor(0,0,W_WIDTH,W_HEIGHT);
 		return;
 	}
 
@@ -195,13 +196,14 @@ void Model3DS::DrawTextureMonitor(int x, int y, int w, int h)
 
 	int texNumber = 0;
 	pTexturesList[texNumber]->bind();
+
 	REP(faceIdx, im->mFaces.size() )
 	{
 		REP(verIdx, im->mFaces[faceIdx].size())
 		{
 			int index = im->mFaces[faceIdx].at(verIdx);
 
-			if(texNumber != im->mVertices[index].mTexID)
+			if(texNumber != im->mVertices[index].mTexID && im->mVertices[index].mTexID >= 0 && im->mVertices[index].mTexID < pTexturesList.size())
 			{
 				pTexturesList[texNumber]->unbind();
 				texNumber = im->mVertices[index].mTexID;
@@ -216,13 +218,14 @@ void Model3DS::DrawTextureMonitor(int x, int y, int w, int h)
 			texel[1] = im->mVertices[index].tex_coord2.y / 480;
 //			glColor3b(im->mVertices[index].tex_color.red, im->mVertices[index].tex_color.green, im->mVertices[index].tex_color.blue);
 			glTexCoord2fv(texel);
+//			printf("(%f,%f)\n",texel[0],texel[1]);
 			glVertex2fv(vertex);
 		}
 	}
 	pTexturesList[texNumber]->unbind();
 	glEnd();
 
-	glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_DEPTH_TEST);
 }
 
 /*
@@ -241,35 +244,16 @@ void Model3DS::IntegrationTextures(Lib3dsFile * pModel, std::string msModelDir)
 	IndexedMesh * im = pLSCM->mMesh.get();
 
 	//Get RGB color corresponding to each vertex
-	REP(faceIdx, im->mFaces.size() )
+	REP(verIdx, im->mVertices.size())
 	{
-		REP(verIdx, im->mFaces[faceIdx].size())
-		{
-			Vector2 texcoord;
-			int index = im->mFaces[faceIdx].at(verIdx);
-			texcoord.x = im->mVertices[index].tex_coord.x;
-			texcoord.y = im->mVertices[index].tex_coord.y;
+		Vector2 texcoord;
+		texcoord.x = im->mVertices[verIdx].tex_coord.x;
+		texcoord.y = im->mVertices[verIdx].tex_coord.y;
 
-			int textureIdx = im->mVertices[index].mTexID;
-			if(static_cast<int>(pTexturesList.size()) <= textureIdx || textureIdx < 0)
-			{
-//				im->mVertices[index].tex_color = Rgb<byte>(0,0,0);
-				im->mVertices[index].tex_coord2 = texcoord;
-				break;
-			}
-			else
-			{
-				im->mVertices[index].tex_coord2.x = 0;
-				im->mVertices[index].tex_coord2.y = 0;
-			}
-//			vector< Texture::Buftype > colorMap = pTexturesList[textureIdx]->getData();
-//			const int w = pTexturesList[textureIdx]->getWidth();
-//			const int h = pTexturesList[textureIdx]->getHeight();
-//			assert(0 <= texcoord.x && texcoord.x < w);
-//			assert(0 <= texcoord.y && texcoord.y < h);
-//			im->mVertices[index].tex_color = colorMap[texcoord.x + texcoord.y*w];
-//			cout << im->mVertices[index].tex_color <<  "<" << index << "," << textureIdx << ">";
-//			printf("(%f,%f)\n",texcoord.x, texcoord.y);
+		int textureIdx = im->mVertices[verIdx].mTexID;
+		if(static_cast<int>(pTexturesList.size()) <= textureIdx || textureIdx < 0)
+		{
+			im->mVertices[verIdx].tex_coord2 = texcoord;
 		}
 	}
 
@@ -384,7 +368,7 @@ void Model3DS::ConvertDataStructure(boost::shared_ptr<TextureTransfer::LSCM> pLS
 	using namespace TextureTransfer;
 
 	//for texture deployment
-	cout << "Convert to LSCM data structure" << endl;
+	cout << "Convert to LSCM data structure(" << pMesh.size() << ")"<< endl;
 
 	REP(loopMesh, pMesh.size())
 	{
@@ -393,9 +377,9 @@ void Model3DS::ConvertDataStructure(boost::shared_ptr<TextureTransfer::LSCM> pLS
 			pLSCM->mMesh->AddVertex(pMesh[loopMesh]->mVertices[verIdx].point, pMesh[loopMesh]->mVertices[verIdx].tex_coord);
 
 			//init texture number information
-			pLSCM->mMesh->mVertices[verIdx].textureNumber = loopMesh;
+			pLSCM->mMesh->mVertices.back().textureNumber = loopMesh;
 
-			pLSCM->mMesh->mVertices[verIdx].mTexID = pMesh[loopMesh]->mVertices[verIdx].mTexID;
+//			pLSCM->mMesh->mVertices.back().mTexID = loopMesh;
 		}
 	}
 
@@ -602,7 +586,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 		glNewList(list, GL_COMPILE);
 		cout << "The number of materials : " << pModel->nmaterials << endl;
 		// Loop through every mesh
-		REP(nm,pModel->nmaterials) {
+		REP(nm,pModel->nmaterials)
+		{
 			bool textureOn = false; // if the material has a texture -> true
 			string sFile = pModel->materials[nm]->texture1_map.name;
 			if (!sFile.empty() && texturesList.size() > 0) {
@@ -621,7 +606,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 				}
 				glMaterialf(GL_FRONT, GL_SHININESS, s);
 			}
-			REP(mm,pModel->nmeshes) {
+			REP(mm,pModel->nmeshes)
+			{
 				Lib3dsMesh * mesh = pModel->meshes[mm];
 				Vector3D * normals = new Vector3D[3 * mesh->nfaces];
 
@@ -634,8 +620,8 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 				bWireframe ? glBegin(GL_LINES) : glBegin(GL_TRIANGLES);
 				EndIter = materials[nm].meshIdx[mm].faceId.end();
 				for (Iter = materials[nm].meshIdx[mm].faceId.begin(); Iter!= EndIter; ++Iter)
-				{
 					// Go through each corner of the triangle and draw it.
+				{
 					REP(vv,3) {
 						// Get the index for each point of the face
 						int index = mesh->faces[(*Iter)].index[vv];
@@ -649,7 +635,11 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 						// Draw in the current vertex of the object (Corner of current face)
 						if (textureOn)
 						{
-							glTexCoord2fv(mesh->texcos[index]);
+							//for Yasuhara's reconstruction
+							glTexCoord2f(mesh->texcos[index][0]/640, mesh->texcos[index][1]/480);
+
+							//for Umakatsu's reconstruction
+//							glTexCoord2fv(mesh->texcos[index]);
 							tex++;
 						}
 						glVertex3fv(mesh->vertices[index]);
@@ -695,7 +685,6 @@ GLuint Model3DS::_GenerateDisplayList(Lib3dsFile * pModel, bool bWireframe, std:
 			glEnd();
 			delete normals;
 		}
-		cout << "Texture + " << tex << endl;
 		glEndList();
 	}
 	return list;
@@ -1076,10 +1065,12 @@ deque<Texture *> Model3DS::_LoadTextures(Lib3dsFile * pModel, string dirpath)
 		// Acquire a texture name
 		string sTexFile = pModel->materials[ii]->texture1_map.name;
 
-		if (!sTexFile.empty()) {
+		if (!sTexFile.empty())
+		{
 			string textureFilename = dirpath + "/" + sTexFile;
 			const char * sp = strrchr(sTexFile.c_str(), '.');
-			if (strcmp(sp, ".gif") == 0 || strcmp(sp, ".GIF") == 0) {
+			if (strcmp(sp, ".gif") == 0 || strcmp(sp, ".GIF") == 0)
+			{
 				cerr << "cvLoadImage does not support GIF format! -> "
 						<< textureFilename.c_str() << endl;
 				continue;
@@ -1090,8 +1081,6 @@ deque<Texture *> Model3DS::_LoadTextures(Lib3dsFile * pModel, string dirpath)
 			Texture* tmpTexture = new Texture(
 					static_cast<const ::ImageType> (TextureRGB));
 			texList.push_back(tmpTexture);
-
-			vector< Texture::Buftype > colorMap = tmpTexture->getData();
 		}
 	}
 	return (texList);

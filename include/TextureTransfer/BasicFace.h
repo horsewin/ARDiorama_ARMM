@@ -75,7 +75,7 @@ namespace TextureTransfer
 		Vector3 point ;
 		Vector3 normal ;
 		Vector2 tex_coord ;
-		Vector2 tex_coord2;
+		Vector2 tex_coord2 ;
 		CVD::Rgb< CVD::byte > tex_color;
 		bool    locked ;
 		int     id ;

@@ -21,20 +21,13 @@
   </Category>
   <Category name="Category Origin" image="ReconstructedObjects/Reconstruction.png"> 
     <!--R Objects Start -->
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_311_1757" file="Voxel_2012_311_1757.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_330_1947" file="Voxel_2012_330_1947.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_330_2011" file="Voxel_2012_330_2011.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_330_2013" file="Voxel_2012_330_2013.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_524_2124" file="Voxel_2012_524_2124.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_92_1712" file="Voxel_2012_92_1712.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_92_1731" file="Voxel_2012_92_1731.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_94_2144" file="Voxel_2012_94_2144.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_015" file="Voxel_2012_95_015.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_050" file="Voxel_2012_95_050.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_056" file="Voxel_2012_95_056.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_218" file="Voxel_2012_95_218.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_2125" file="Voxel_2012_95_2125.3ds" roll="0" pitch="0" yaw="0" />
-    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_95_2145" file="Voxel_2012_95_2145.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_912_231" file="Voxel_2012_912_231.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_912_2315" file="Voxel_2012_912_2315.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_912_2317" file="Voxel_2012_912_2317.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_913_11" file="Voxel_2012_913_11.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_913_11" file="Voxel_2012_913_11.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_913_130" file="Voxel_2012_913_130.3ds" roll="0" pitch="0" yaw="0" />
+    <Model name="R_Model" image="Testset.png" dir="ReconstructedObjects/Voxel_2012_913_135" file="Voxel_2012_913_135.3ds" roll="0" pitch="0" yaw="0" />
     <!--R Objects End -->
   </Category>
 </PTAMM_Model_DB>

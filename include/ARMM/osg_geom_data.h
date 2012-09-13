@@ -5,6 +5,8 @@
 #include <osg/Geometry>
 #include <osg/Material>
 #include <osg/StateSet>
+#include <osg/LightModel>
+
 //#include <osg/Light>
 //#include <osg/LightSource>
 #include <osg/PositionAttitudeTransform>
@@ -301,9 +303,9 @@ osg::Node* osgCreateSoft(string texturename)
     {
         osg::StateSet* stateSet( geom->getOrCreateStateSet() );
 
-//        osg::LightModel* lm( new osg::LightModel() );
-//        lm->setTwoSided( true );
-//        stateSet->setAttributeAndModes( lm );
+        osg::LightModel* lm( new osg::LightModel() );
+        lm->setTwoSided( true );
+        stateSet->setAttributeAndModes( lm );
 
         const std::string texName( texturename.c_str() );
         osg::Texture2D* tex( new osg::Texture2D(
@@ -321,8 +323,19 @@ osg::Node* osgCreateSoft(string texturename)
 
 osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 {
+	ostringstream modelfile;
+	if(dir)
+	{
+		modelfile << dir << file;
+	}
+	else
+	{
+		cerr << "Error: No directory is specified" << endl;
+		return NULL;
+	}
+
 	//open 3ds file
-	Lib3dsFile * model = lib3ds_file_open(file);
+	Lib3dsFile * model = lib3ds_file_open(modelfile.str().c_str());
 	if (model == NULL)
 	{
 		std::cerr << "Failed to load model " << file << std::endl;
@@ -417,12 +430,20 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 		tex_file += model->materials[nm]->texture1_map.name;
 //		osg::ref_ptr<osg::TextureRectangle> texture = 0;
 		osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
-		std::cout << "Texture - " << model->materials[nm]->texture1_map.name << endl;
+		std::cout << "Texture - " << tex_file.c_str() << endl;
 		// Activate texture
 		if (!tex_file.empty())
 		{
 			//loading texture image object
-			osg::ref_ptr<osg::Image> image (osgDB::readImageFile(tex_file.c_str()));
+
+			osg::ref_ptr<osg::Image> image = 			osgDB::readImageFile(tex_file.c_str());
+			if(image){}
+			else
+			{
+				std::cerr << " NULL pointer found" << std::endl;
+				continue;
+			}
+
 			if(!image->valid())
 			{
 				std::cerr << "Error in osgDB::readImageFile -> " << tex_file.c_str() << std::endl;
@@ -453,8 +474,17 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 					// Get the index for each point of the face
 					int index = mesh->faces[(*Iter)].index[vv];
 //					cout << mesh->vertices[index][0] << "," << mesh->vertices[index][1] << "," << mesh->vertices[index][2] << endl;
+
+					//Regular version
+//					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
+					//for Yasuhara cube
 					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
-					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1-mesh->texcos[index][1])); // caution to texture coordinate
+
+					//this one for Umakatsu's reconstruction
+//					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1-mesh->texcos[index][1])); // caution to texture coordinate
+
+//					//this one for Yasuhara's reconstruction
+					texcoords->push_back( osg::Vec2(mesh->texcos[index][0]/640, 1-mesh->texcos[index][1]/480)); // caution to texture coordinate
 				}
 				std::vector<int > tmpFace;
 				for(int i=0; i<3; i++) tmpFace.push_back(id++);
