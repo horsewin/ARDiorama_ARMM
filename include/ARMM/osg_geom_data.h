@@ -476,12 +476,15 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 //					cout << mesh->vertices[index][0] << "," << mesh->vertices[index][1] << "," << mesh->vertices[index][2] << endl;
 
 					//Regular version
-//					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
-					//for Yasuhara cube
 					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
+
+					//for Yasuhara's cube
+//					double scale = 0.1;
+//					vertices->push_back(osg::Vec3(mesh->vertices[index][0]/scale-0.193, mesh->vertices[index][1]/scale+0.815, mesh->vertices[index][2]/scale-0.113));
 
 					//this one for Umakatsu's reconstruction
 //					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1-mesh->texcos[index][1])); // caution to texture coordinate
+
 
 //					//this one for Yasuhara's reconstruction
 					texcoords->push_back( osg::Vec2(mesh->texcos[index][0]/640, 1-mesh->texcos[index][1]/480)); // caution to texture coordinate
@@ -511,6 +514,207 @@ osg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 		geode->setStateSet(state_geode.get());
 
 		// add it to a parent node
+		geode->addDrawable(geometry.get());
+
+		body->addChild(geode.get());
+	}
+	return body.release();
+}
+
+//TODO 論文執筆したら除去。モデルの重心を計算してサイズ調整をする関数をosg3DSFIle...に追加すること
+osg::Node* osg3DSFileFromDiorama2( const char* file, const char * dir = NULL)
+{
+	ostringstream modelfile;
+	if(dir)
+	{
+		modelfile << dir << file;
+	}
+	else
+	{
+		cerr << "Error: No directory is specified" << endl;
+		return NULL;
+	}
+
+	//open 3ds file
+	Lib3dsFile * model = lib3ds_file_open(modelfile.str().c_str());
+	if (model == NULL)
+	{
+		std::cerr << "Failed to load model " << file << std::endl;
+		return NULL;
+	}
+	else
+	{
+		std::cout << "Load file : " << file << std::endl;
+	}
+
+	vector<PTAMM::Materials> materials;//材質データ構造
+	PTAMM::Materials MatDefault;//デフォルト用
+	vector<int>::iterator Iter;
+	vector<int>::iterator EndIter;
+	Lib3dsMaterial *material;
+	Lib3dsMesh *mesh;
+
+	//材質データ構造のメモリ確保
+	materials.resize(model->nmaterials);
+	for (int loop = 0; loop < model->nmaterials; ++loop) {
+		material = model->materials[loop];//loop番目のマテリアル
+		//各材質データ内のメンバでメモリ確保
+		materials[loop].meshIdx.resize(model->nmeshes);
+		for (int n = 0; n < model->nmeshes; ++n) {
+			mesh = model->meshes[n];//n番目のメッシュ
+			materials[loop].meshIdx[n].faceId.reserve(mesh->nfaces
+					/ model->nmaterials);//適当にメモリ確保
+		}
+	}
+
+//	//材質デフォルトのメモリ確保
+//	MatDefault.meshIdx.resize(model->nmeshes);
+//	for (int loop1 = 0; loop1 < model->nmeshes; ++loop1) {
+//		mesh = model->meshes[loop1];
+//		if (model->nmaterials != 0){
+//			MatDefault.meshIdx[loop1].faceId.reserve(mesh->nfaces / model->nmaterials);
+//		}
+//	}
+
+	//材質データ構造に対応するメッシュデータIDを格納する
+	static int MatId = 0;
+	for (int k = 0; k < model->nmeshes; ++k) {
+		mesh = model->meshes[k];//k番目のメッシュ
+		for (int i = 0; i < mesh->nfaces; ++i) {
+			MatId = mesh->faces[i].material;
+			if (MatId == -1) {
+//				MatDefault.meshIdx[k].faceId.push_back(i);
+			} else {
+				materials[MatId].meshIdx[k].faceId.push_back(i);
+			}
+		}
+//		std::vector<int>(MatDefault.meshIdx[k].faceId).swap(MatDefault.meshIdx[k].faceId);
+	}
+
+	//shrink - to - fitで確保メモリの調整
+	for (int loop = 0; loop < model->nmaterials; ++loop) {
+		for (int j = 0; j < model->nmeshes; ++j) {
+			std::vector<int>(materials[loop].meshIdx[j].faceId).swap(
+					materials[loop].meshIdx[j].faceId);
+		}
+
+	}
+
+//	//some defaults
+//	static GLfloat ambiant[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+//	static GLfloat diffuse[4] = { 0.8f, 0.8f, 0.8f, 1.0f };
+//	static GLfloat spectal[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	// Loop through every mesh
+	osg::ref_ptr<osg::Group> body = new osg::Group;
+	long int id;
+	std::cout << model->nmaterials << endl;
+	for(int nm=0; nm < model->nmaterials; nm++)
+	{
+		//declare array variable corresponding to models
+		osg::ref_ptr<osg::Vec3Array> vertices	= new osg::Vec3Array;
+		osg::ref_ptr<osg::DrawElementsUInt> faceArray = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+//		osg::ref_ptr<osg::Vec3Array> normals	= new osg::Vec3Array;
+		osg::ref_ptr<osg::Vec2Array> texcoords	= new osg::Vec2Array;
+		id = 0;
+
+		// Acquire a texture name
+		std::string tex_file;
+		if(dir)
+		{
+			tex_file = dir;
+		}
+		else
+		{
+			tex_file = MODELDIR;
+		}
+		tex_file += model->materials[nm]->texture1_map.name;
+//		osg::ref_ptr<osg::TextureRectangle> texture = 0;
+		osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
+		std::cout << "Texture - " << tex_file.c_str() << endl;
+		// Activate texture
+		if (!tex_file.empty())
+		{
+			//loading texture image object
+
+			osg::ref_ptr<osg::Image> image = 			osgDB::readImageFile(tex_file.c_str());
+			if(image){}
+			else
+			{
+				std::cerr << " NULL pointer found" << std::endl;
+				continue;
+			}
+
+			if(!image->valid())
+			{
+				std::cerr << "Error in osgDB::readImageFile -> " << tex_file.c_str() << std::endl;
+			}
+			else
+			{
+				texture->setImage(image.get());
+			}
+			texture->setUnRefImageDataAfterApply(false);
+		}
+		else
+		{
+			std::cout << "Default " << nm << std::endl;
+		}
+
+		for(int mm = 0; mm<model->nmeshes; mm++)
+		{
+			// get mesh information from the Lib3dsFile object
+			Lib3dsMesh * mesh = model->meshes[mm];
+
+			// Begin drawing with our selected mode
+			EndIter = materials[nm].meshIdx[mm].faceId.end();
+			for (Iter = materials[nm].meshIdx[mm].faceId.begin(); Iter!= EndIter; Iter++)
+			{
+				// Go through each corner of the triangle and draw it.
+				for(int vv=0; vv<3; vv++)
+				{
+					// Get the index for each point of the face
+					int index = mesh->faces[(*Iter)].index[vv];
+//					cout << mesh->vertices[index][0] << "," << mesh->vertices[index][1] << "," << mesh->vertices[index][2] << endl;
+
+					//Regular version
+//					vertices->push_back( osg::Vec3(mesh->vertices[index][0], mesh->vertices[index][1], mesh->vertices[index][2]));
+
+					//for Yasuhara's cube
+					double scale = 0.1;
+					vertices->push_back(osg::Vec3(mesh->vertices[index][0]/scale-0.193, mesh->vertices[index][1]/scale+8.15, mesh->vertices[index][2]/scale-0.113));
+
+					//this one for Umakatsu's reconstruction
+//					texcoords->push_back( osg::Vec2(mesh->texcos[index][0], 1-mesh->texcos[index][1])); // caution to texture coordinate
+
+
+//					//this one for Yasuhara's reconstruction
+					texcoords->push_back( osg::Vec2(mesh->texcos[index][0]/640, 1-mesh->texcos[index][1]/480)); // caution to texture coordinate
+				}
+				std::vector<int > tmpFace;
+				for(int i=0; i<3; i++) tmpFace.push_back(id++);
+				faceArray->push_back(tmpFace[0]);
+				faceArray->push_back(tmpFace[2]);
+				faceArray->push_back(tmpFace[1]);
+			}
+		}
+
+		//set each attribute
+		osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
+		geometry->setVertexArray(vertices.get());
+		geometry->addPrimitiveSet(faceArray.get());
+		geometry->setTexCoordArray(0, texcoords.get());
+
+		osg::ref_ptr<osg::Geode> geode= new osg::Geode;
+
+		// Assign texture unit 0 of our new StateSet to the texture
+		// we just created and enable the texture.
+		osg::ref_ptr<osg::StateSet> state_geode = new osg::StateSet;
+		state_geode->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
+		state_geode->setMode(GL_LIGHTING, GL_FALSE);
+		state_geode->setMode(GL_DEPTH_TEST, GL_FALSE); // if do not use this, there is something wrong for texture mapping
+		geode->setStateSet(state_geode.get());
+
+		// add it to aosg::Node* osg3DSFileFromDiorama( const char* file, const char * dir = NULL)
 		geode->addDrawable(geometry.get());
 
 		body->addChild(geode.get());

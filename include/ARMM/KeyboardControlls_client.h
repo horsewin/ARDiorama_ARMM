@@ -88,36 +88,48 @@ public:
 				break;
 
 			case 79: {//o
-				ostringstream str;
-				const char * FILENAME = "GreenCow";
+//				ostringstream str;
+//				const char * FILENAME = "ColorTorus";
+//				const char * FORMAT = ".3ds";
+//				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+//				LoadCheck(obj.get(), str.str().c_str());
+////				float scale = 0.005;//GreenTable
+//				float scale = 10;//GreenTorus
+//
+//				//安原モデルの場合、テクスチャ座標の調整が必要
+				string str(DATABASEDIR);
 				const char * FORMAT = ".3ds";
-				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-				LoadCheck(obj.get(), str.str().c_str());
-//				float scale = 0.005;//GreenTable
-				float scale = 10;//GreenTorus
+				const char * FILENAME = "keyboard";
+				str += FILENAME; str+="/";
+				string modelFileName(FILENAME);
+				modelFileName += FORMAT;
+				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
+				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
+
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
 			}
 
 			case 80: {//p
-//				ostringstream str;
+				ostringstream str;
 				const char * FORMAT = ".3ds";
-//				const char * FILENAME = "WoodTable";
-//				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
-//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-//				LoadCheck(obj.get(), str.str().c_str());
-//				float scale = 10;
-//				//安原モデルの場合、テクスチャ座標の調整が必要
-				string str(DATABASEDIR);
-				const char * FILENAME = "keyboard";
-				str += FILENAME; str+="/";
-				string modelFileName(FILENAME);
-				modelFileName += FORMAT;
-				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
-//				double scale = 40; //サーバ側の値から決定した for (Cube) for 安原モデル
-				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
+				const char * FILENAME = "WoodTable";
+				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+				LoadCheck(obj.get(), str.str().c_str());
+				float scale = 10;
+
+////				//安原モデルの場合、テクスチャ座標の調整が必要
+//				string str(DATABASEDIR);
+//				const char * FILENAME = "cube";
+//				str += FILENAME; str+="/";
+//				string modelFileName(FILENAME);
+//				modelFileName += FORMAT;
+//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama2(modelFileName.c_str(), str.c_str()));
+//				double scale = 20; //for (Cube) for 安原モデル ただしosg3DSFileFromDioramaで調整されていること
+////				double scale = 300; //for (keyboard) for 安原モデル
 				osgAddObjectNode(obj.get(), scale);
 				Virtual_Objects_Count++;
 				break;
@@ -132,7 +144,7 @@ public:
 			case 100: {// This function is called after texture transferred
 
 				ostringstream str;
-				const char * FILENAME = "GreenKeyboard";
+				const char * FILENAME = "Newcow";
 				const char * FORMAT = ".3ds";
 				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
 
@@ -146,8 +158,9 @@ public:
 
 				//swap a child of the objects node with new child node
 				obj_transform_array[collidedNodeInd]->setChild(childInd, osgDB::readNodeFile(str.str().c_str()));
-//				double scale = 40; //安原Cube
-				double scale = 300;
+				double scale = 10; //
+//				double scale = 20; //安原Cube
+//				double scale = 300;
 				obj_transform_array[collidedNodeInd]->setScale(osg::Vec3d(scale,scale,scale));
 				collision = false;
 				break;
@@ -158,7 +171,7 @@ public:
 			{
 				//parts node
 				string str(DATABASEDIR);
-				const char * file = "GreenCow/LSCM_Newcow1.bmp";
+				const char * file = "key2.bmp";
 				str += file;
 				objTexture = osgCreateSoft(str.c_str());
 				LoadCheck(objTexture.get(), str.c_str());
