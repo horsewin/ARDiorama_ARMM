@@ -6,56 +6,30 @@
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
-#include "constant.h"
-
-#include <stdio.h>
-//#include <tchar.h>
-
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 
 #include "vrpn_Tracker.h"
 #include "vrpn_Connection.h"
 #include "CaptureLibrary.h"
 
 #include "ImageType.h"
+
+#include <boost/shared_ptr.hpp>
+#include "constant.h"
+
 //---------------------------------------------------------------------------
 // Constant/Define
 //---------------------------------------------------------------------------
 //#define USE_CLIENT_SENDER
-
-#if CAR_SIMULATION == 1
-	const int NUM_CARS = 2;
-	const int NUM_WHEELS = 4;
-#else
-	const int NUM_CARS = 0;
-	const int NUM_WHEELS = 0;
-#endif
-
-const int NUM_OBJECTS = 10;
-const int CAR_PARAM 			= NUM_CARS*NUM_WHEELS+NUM_CARS;
-const int COLLISION_PARAM	= CAR_PARAM + 1;
-const short resX(12);
-const short resY(9);
-extern bool running;
-
-#ifndef VRPN_ARCH
-typedef  char            vrpn_int8;
-typedef  unsigned char   vrpn_uint8;
-typedef  short           vrpn_int16;
-typedef  unsigned short  vrpn_uint16;
-typedef  int             vrpn_int32;
-typedef  unsigned int	 vrpn_uint32;
-typedef  float           vrpn_float32;
-typedef  double          vrpn_float64;
-#endif
 
 //---------------------------------------------------------------------------
 // Struct
 //---------------------------------------------------------------------------
 typedef	struct _vrpn_TRACKERHANDCB {
 	struct timeval	msg_time;	// Time of the report
-	vrpn_int32	sensor;		// Which sensor is reporting
-	vrpn_float32 hand[UDP_LIMITATION][3];
+	ARMM::vrpn_int32	sensor;		// Which sensor is reporting
+	ARMM::vrpn_float32 hand[ARMM::ConstParams::UDP_LIMITATION][3];
 	//vrpn_float32 hand;
 } vrpn_TRACKERHANDCB;
 typedef void (VRPN_CALLBACK *vrpn_TRACKERHANDCHANGEHANDLER)(void *userdata,
@@ -63,18 +37,18 @@ typedef void (VRPN_CALLBACK *vrpn_TRACKERHANDCHANGEHANDLER)(void *userdata,
 
 typedef	struct _vrpn_TRACKERSOFTTEXTURECB {
 	struct timeval	msg_time;	// Time of the report
-	vrpn_int32	sensor;		// Which sensor is reporting
-	vrpn_float32 softT[resX*resY][3];
+	ARMM::vrpn_int32	sensor;		// Which sensor is reporting
+	ARMM::vrpn_float32 softT[ARMM::ConstParams::resX * ARMM::ConstParams::resY][3];
 } vrpn_TRACKERSOFTTEXTURECB;
 typedef void (VRPN_CALLBACK *vrpn_TRACKERSOFTTEXTURECHANGEHANDLER)(void *userdata,
 					     const vrpn_TRACKERSOFTTEXTURECB info);
-
-class KeyboardController_client;
 
 namespace ARMM
 {
 	enum datatype{REGULAR, SOFTBODY};
 	class PointgreyCamera;
+	class KeyboardController_client;
+	class osg_Client;
 
 	//---------------------------------------------------------------------------
 	// Class definition
@@ -137,8 +111,9 @@ namespace ARMM
 		void DecideCollisionCondition();
 
 	private:
-		ARMMClient * armm_client;
-		::KeyboardController_client *kc;
+		ARMMClient *armm_client;
+		KeyboardController_client *kc;
+		boost::shared_ptr<osg_Client> osg_render;
 		#ifdef POINTGREYCAMERA
 		PointgreyCamera *capture;
 		#else

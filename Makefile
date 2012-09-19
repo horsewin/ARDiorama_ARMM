@@ -50,7 +50,7 @@ LINKFLAGS = -L MY_CUSTOM_LINK_PATH -L/usr/local/lib -lGLEW -lblas -llapack -lGVa
 # -lhighgui -lcvaux -lcv -lml -lcxcore
 
 ######## Object file #########
-SUBDIRS = ./ARMM ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer ./TextureTransfer/MeshDecomposition ./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
+SUBDIRS = ./ARMM ./ARMM/Rendering ./Demo ./Image ./Model ./PTAMTracking ./Reconstruction ./Stroke ./VideoSource ./Window ./TextureTransfer ./TextureTransfer/MeshDecomposition ./TextureTransfer/Model3DS ./TextureTransfer/Modelling ./TextureTransfer/Transfer
 VPATH = $(SUBDIRS)
 
 MODELS=Obj/Model3DSForTexture.o\
@@ -91,8 +91,11 @@ RECONSTRUCTION = $(SEGMENTATION)\
 ARMM = Obj/ARMM_Client.o\
 				Obj/ARMM_vrpn.o\
 				Obj/MyShadowMap.o\
-				Obj/PointgreyCamera.o
-#				Obj/KeyboardControlls_client.o
+				Obj/PointgreyCamera.o\
+				Obj/KeyboardControlls_client.o\
+				Obj/osg_Client.o\
+				Obj/osg_Object.o\
+				Obj/constant.o
 														
 # Object files for an AR Diorama
 ARDiorama = Obj/Authoring.o\

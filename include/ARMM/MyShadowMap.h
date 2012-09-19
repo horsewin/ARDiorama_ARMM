@@ -23,7 +23,6 @@
 
 namespace osgShadow
 {
-
 	/** ShadowedTexture provides an implementation of shadow textures.*/
 	class MyShadowMap : public ShadowTechnique
 	{

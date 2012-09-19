@@ -2,26 +2,34 @@
 #define ARMM_VRPN_CPP
 
 #include "ARMM/ARMM_vrpn.h"
-#include <cstring>
 
-namespace ARMM{
+#include <cstring>
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+
+#include "constant.h"
+
+namespace ARMM
+{
+	using namespace std;
 	ARMM_Communicator::ARMM_Communicator( vrpn_Connection *c) : vrpn_Tracker( "ARMM_Comm", c )
 	{
 		HeightfieldData = new float[19200];
-		CarsArrayPos = new osg::Vec3d[NUMBER_CAR];
-		CarsArrayQuat = new osg::Quat[NUMBER_CAR];
-		WheelsArrayPos = new osg::Vec3d*[NUMBER_CAR];
-		WheelsArrayQuat = new osg::Quat*[NUMBER_CAR];
+		CarsArrayPos = new osg::Vec3d[ConstParams::NUM_CARS];
+		CarsArrayQuat = new osg::Quat[ConstParams::NUM_CARS];
+		WheelsArrayPos = new osg::Vec3d*[ConstParams::NUM_CARS];
+		WheelsArrayQuat = new osg::Quat*[ConstParams::NUM_CARS];
 
-		for( int i = 0 ; i < NUMBER_CAR ; i++ ) {
-			WheelsArrayPos[i] = new osg::Vec3d[NUM_WHEEL];
-			WheelsArrayQuat[i] = new osg::Quat[NUM_WHEEL];
+		for( int i = 0 ; i < ConstParams::NUM_CARS ; i++ ) {
+			WheelsArrayPos[i] = new osg::Vec3d[ConstParams::NUM_WHEELS];
+			WheelsArrayQuat[i] = new osg::Quat[ConstParams::NUM_WHEELS];
 		}
 	}
 
 	ARMM_Communicator::~ARMM_Communicator() {
 
-		for( int i = 0 ; i < NUMBER_CAR ; i++ ) {
+		for( int i = 0 ; i < ConstParams::NUM_CARS ; i++ ) {
 			delete [] WheelsArrayPos[i];
 			delete [] WheelsArrayQuat[i];
 		}
