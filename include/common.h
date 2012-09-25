@@ -9,15 +9,25 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#include "define.h"
+#define REP(i,n) for(int i=0;i<(int)n;++i)
+
+#include <TooN/TooN.h>
 #include "OpenGL.h"
 #include "Image/BmpFileIO.h"
 #include <string>
+
+typedef unsigned long int ulint;
+typedef unsigned char uchar;
+typedef double SCALAR;
+typedef TooN::Vector< 3 > Vertex;
 
 // OpenCV画像を既存タイプの配列に変換するヘッダ
 #include "myCVmethod.h"
 // Vectorクラスの処理関数を使うヘッダ
 #include "myVector.h"
+
+
+
 
 /* 全体 */
 const int D = 3;	// dimension

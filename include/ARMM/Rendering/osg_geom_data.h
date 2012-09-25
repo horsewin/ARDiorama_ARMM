@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "Model/Model3ds.h"
+#include "constant.h"
 
 /*
 //osgbullet
@@ -32,7 +33,6 @@
 */
 namespace ARMM
 {
-	extern const char * DATABASEDIR;
 	osg::Node *createCube()
 	{
 		// vertex array
@@ -428,7 +428,7 @@ namespace ARMM
 			}
 			else
 			{
-				tex_file = DATABASEDIR;
+				tex_file = ConstParams::DATABASEDIR;
 			}
 			tex_file += model->materials[nm]->texture1_map.name;
 	//		osg::ref_ptr<osg::TextureRectangle> texture = 0;
@@ -629,7 +629,7 @@ namespace ARMM
 			}
 			else
 			{
-				tex_file = DATABASEDIR;
+				tex_file = ConstParams::DATABASEDIR;
 			}
 			tex_file += model->materials[nm]->texture1_map.name;
 	//		osg::ref_ptr<osg::TextureRectangle> texture = 0;

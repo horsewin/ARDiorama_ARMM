@@ -88,9 +88,6 @@ namespace ARMM
 				return shadowedScene;
 			}
 
-		public:
-			enum{resX=12, resY=9};
-
 		private:
 			//Shadowing Stuff
 			osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene;

@@ -503,9 +503,9 @@ namespace ARMM
 	//////////////////// Entry point ////////////////////
 	ARMM::ARMM( ::Capture *camera)
 #ifdef POINTGREYCAMERA
-		: capture(static_cast<PointgreyCamera *>(camera))
+		: mCapture(static_cast<PointgreyCamera *>(camera))
 #else
-	   : capture = new CvCamera(0, CAPTURE_SIZE, CAMERA_PARAMS_FILENAME);
+	   : mCapture = new CvCamera(0, CAPTURE_SIZE, CAMERA_PARAMS_FILENAME);
 
 #endif
 	{
@@ -521,38 +521,37 @@ namespace ARMM
 
 		cvReleaseMat(&RegistrationParams);
 
-		if(capture) delete capture;
-		delete kc;
-		delete armm_client;
+		if(mCapture) delete mCapture;
+		delete mKC;
 	}
 
 	void ARMM::Run()
 	{
 
 //		TickCountAverageBegin();
-		armm_client->mainloop();
+		mARMMClient->mainloop();
 //		TickCountAverageEnd();
-		IplImage *arImage = capture->getFrame();
-		RenderScene(arImage, capture);
+		IplImage *arImage = mCapture->getFrame();
+		RenderScene(arImage, mCapture);
 		cvReleaseImage(&arImage);
 #ifdef USE_CLIENT_SENDER
-		ARMM_client_sender->SetPasskey( kc->check_input() );
+		ARMM_client_sender->SetPasskey( mKC->check_input() );
 		if( ARMM_client_sender->GetPasskey()  != 0){
 			ARMM_client_sender->mainloop();
 		}
 #else
 		if( m_pass != 0){
-			kc->set_input(m_pass, osg_render);
+			mKC->set_input(m_pass, mOsgRender);
 			m_pass = 0;
 		}
 
 		DecideCollisionCondition();
 
-		const int objIndex = osg_render->getOsgObject()->getObjectIndex();
+		const int objIndex = mOsgRender->getOsgObject()->getObjectIndex();
 
 		if( touch && stroke )
 		{
-			collidedNodeInd = (osg_render->getOsgObject()->SizeObjNodeArray()-1) - (objIndex  - collisionInd);
+			collidedNodeInd = (mOsgRender->getOsgObject()->SizeObjNodeArray()-1) - (objIndex  - collisionInd);
 			GetCollisionCoordinate(collidedNodeInd);
 		}
 		if(transfer == 1)
@@ -561,7 +560,7 @@ namespace ARMM
 
 //			cout << "Last Collided obj index = " << collisionInd	 << endl;
 //			cout << "All of Object index = " << objectIndex  << endl;
-			collidedNodeInd = (osg_render->getOsgObject()->SizeObjTransformArray()-1) - (objIndex  - collisionInd);
+			collidedNodeInd = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) - (objIndex  - collisionInd);
 			output << "d " << endl; //as delimitar
 			GetCollisionCoordinate(collidedNodeInd);
 
@@ -573,7 +572,7 @@ namespace ARMM
 //			fontText->setText("");
 
 			//swap the collided object
-			kc->set_input(100, osg_render);
+			mKC->set_input(100, mOsgRender);
 		}
 
 #endif
@@ -613,21 +612,23 @@ namespace ARMM
 			}
 		}
 #endif
-		osg_render = boost::shared_ptr<osg_Client>(new osg_Client());
+		mOsgRender = boost::shared_ptr<osg_Client>(new osg_Client());
 
-		RegistrationParams = scaleParams(capture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
-		osg_render->osg_init(calcProjection(RegistrationParams, capture->getDistortion(), REGISTRATION_SIZE));
+		RegistrationParams = scaleParams(mCapture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
+		mOsgRender->osg_init(calcProjection(RegistrationParams, mCapture->getDistortion(), REGISTRATION_SIZE));
 
 
-		osg_render->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 400);
+		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 400);
 	//	m_Connection = new vrpn_Connection_IP();
 	//	ARMM_Client = new vrpn_Tracker_Remote ("ARMM_Comm", m_Connection);
 
 		//----->Client part
-		armm_client = new ARMMClient (ARMM_SERVER_IP);
-		armm_client->vrpn_Tracker_Remote::register_change_handler(NULL, handle_pos);
-		armm_client->ARMMClient::register_change_handler(NULL, handle_hands);
-		armm_client->ARMMClient::register_change_handler(NULL, handle_softtextures);
+//		mARMMClient = new ARMMClient (ARMM_SERVER_IP);
+		mARMMClient = boost::shared_ptr<ARMMClient>( new ARMMClient(ARMM_SERVER_IP));
+
+		mARMMClient->vrpn_Tracker_Remote::register_change_handler(NULL, handle_pos);
+		mARMMClient->ARMMClient::register_change_handler(NULL, handle_hands);
+		mARMMClient->ARMMClient::register_change_handler(NULL, handle_softtextures);
 		//<-----
 
 
@@ -666,27 +667,27 @@ namespace ARMM
 	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmp Geo->getTexCoordArray(0);
 	//	cout << "Texture size = " << texcoords->size() << endl;
 //	}
-		if(osg_render->getOsgObject()->getVirtualObjectsCount() > 0) {
+		if(mOsgRender->getOsgObject()->getVirtualObjectsCount() > 0) {
 
 			DeleteLostObject();
 			std::vector <osg::Quat> quat_obj_array;
 			std::vector <osg::Vec3d> vect_obj_array;
-			for(int i = 0; i < osg_render->getOsgObject()->getVirtualObjectsCount(); i++) {
+			for(int i = 0; i < mOsgRender->getOsgObject()->getVirtualObjectsCount(); i++) {
 				quat_obj_array.push_back(ObjectsArrayQuat[i]);
 				vect_obj_array.push_back(ObjectsArrayPos[i]);
 			}
-			osg_render->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
+			mOsgRender->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
 #if CAR_SIMULATION == 1
-			osg_render->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
+			mOsgRender->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
 #else
-			(arImage, NULL, NULL, NULL, NULL, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
+			(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion(), quat_obj_array, vect_obj_array);
 #endif
 		} else {
-			osg_render->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
+			mOsgRender->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
 #if CAR_SIMULATION == 1
-			osg_render->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
+			mOsgRender->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
 #else
-			osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, capture->getDistortion());
+			osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion());
 #endif
 		}/* Virtual_Objects_Count > 0 */
 	}
@@ -697,14 +698,14 @@ namespace ARMM
 
 		vector<int> obj_ind;//to remove a lost object
 		obj_ind.clear();
-		for(int i = 0; i < osg_render->getOsgObject()->getVirtualObjectsCount(); i++)
+		for(int i = 0; i < mOsgRender->getOsgObject()->getVirtualObjectsCount(); i++)
 		{
 			if( ObjectsArrayPos[i].z() < -100 ){
 				obj_ind.push_back(i);
 				//writeback coord
-				if( osg_render->getOsgObject()->getVirtualObjectsCount() == 1){}
+				if( mOsgRender->getOsgObject()->getVirtualObjectsCount() == 1){}
 				else{
-					if( (i+1) == osg_render->getOsgObject()->getVirtualObjectsCount() ){}
+					if( (i+1) == mOsgRender->getOsgObject()->getVirtualObjectsCount() ){}
 					else{
 						ObjectsArrayPos[i] = ObjectsArrayPos[i+1];
 					}
@@ -714,9 +715,9 @@ namespace ARMM
 		if(!obj_ind.empty())
 		{
 			vector<osg::PositionAttitudeTransform*> pTransArray =
-					osg_render->getOsgObject()->getObjTransformArray();
+					mOsgRender->getOsgObject()->getObjTransformArray();
 			vector<osg::Node*> pNodesArray =
-					osg_render->getOsgObject()->getObjNodeArray();
+					mOsgRender->getOsgObject()->getObjNodeArray();
 
 			cout << "Lost Number = " << obj_ind.size() << "->";
 			for(int i= obj_ind.size()-1; i>=0; i--)
@@ -725,13 +726,13 @@ namespace ARMM
 				cout << index << " ";
 				vector<osg::PositionAttitudeTransform*>::iterator it = pTransArray.begin() + index;
 				vector<osg::Node*>::iterator it2 = pNodesArray.begin() + index;
-				osg_render->getShadowedScene()->removeChild(pTransArray.at(index));
+				mOsgRender->getShadowedScene()->removeChild(pTransArray.at(index));
 				pTransArray.erase(it);
 				pNodesArray.erase(it2);
-				osg_render->getOsgObject()->DecrementObjCount();
-				cout << "Virtual objects LOST : Remain " << osg_render->getOsgObject()->getVirtualObjectsCount() << endl;
+				mOsgRender->getOsgObject()->DecrementObjCount();
+				cout << "Virtual objects LOST : Remain " << mOsgRender->getOsgObject()->getVirtualObjectsCount() << endl;
 
-				osg_render->getOsgObject()->DecrementObjIndex();
+				mOsgRender->getOsgObject()->DecrementObjIndex();
 			}
 			obj_ind.clear();
 		}
@@ -785,15 +786,15 @@ namespace ARMM
 						collision = true;
 
 						cout << "Collided obj  index = " << collisionInd	 << endl;
-						cout << "All of Object index = " << osg_render->getOsgObject()->getObjectIndex() << endl;
-						int ind = (osg_render->getOsgObject()->SizeObjTransformArray()-1) -
-								(osg_render->getOsgObject()->getObjectIndex()- collisionInd);
+						cout << "All of Object index = " << mOsgRender->getOsgObject()->getObjectIndex() << endl;
+						int ind = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) -
+								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd);
 
 						//make the updater for soft texture ON
-						osg_render->getOsgObject()->setSoftTexture(true);
+						mOsgRender->getOsgObject()->setSoftTexture(true);
 
 						// set a created hand to the graphics tree
-						kc->set_input(101, osg_render);
+						mKC->set_input(101, mOsgRender);
 
 						m_pass = 0;
 						collidedNodeInd = ind;

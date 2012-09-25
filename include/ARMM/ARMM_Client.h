@@ -16,6 +16,8 @@
 #include "ImageType.h"
 
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
+
 #include "constant.h"
 
 //---------------------------------------------------------------------------
@@ -111,13 +113,13 @@ namespace ARMM
 		void DecideCollisionCondition();
 
 	private:
-		ARMMClient *armm_client;
-		KeyboardController_client *kc;
-		boost::shared_ptr<osg_Client> osg_render;
+		boost::shared_ptr<ARMMClient> mARMMClient;
+		KeyboardController_client *mKC;
+		boost::shared_ptr<osg_Client> mOsgRender;
 		#ifdef POINTGREYCAMERA
-		PointgreyCamera *capture;
+		PointgreyCamera *mCapture;
 		#else
-		Capture *capture;
+		Capture *mCapture;
 		#endif
 
 	};

@@ -54,7 +54,7 @@ namespace ARMM
 	std::vector<osg::PositionAttitudeTransform*> hand_object_transform_array[ConstParams::MAX_NUM_HANDS];
 
 	//soft texture manipulation
-	extern osg::Vec3d softTexCoord[osg_Client::resX*osg_Client::resY];
+	extern osg::Vec3d softTexCoord[ConstParams::resX*ConstParams::resY];
 
 	class ARTrackedNode : public osg::Group
 	{
@@ -534,7 +534,7 @@ namespace ARMM
 		//virtual objects part
 		for(uint i = 0; i < v_array.size(); i++)
 		{
-			mOsgObject->SetObjTransformArrayIndex(i, *q, *v);
+			mOsgObject->SetObjTransformArrayIndex(i, q_array.at(i), v_array.at(i));
 		}
 
 		if(softTexture)
@@ -603,9 +603,9 @@ namespace ARMM
 	{
 		mOsgObject->PushObjNodeArray(n);
 
-		std::vector<osg::PositionAttitudeTransform*> pTransArray =
-				mOsgObject->getObjTransformArray();
+		std::vector<osg::PositionAttitudeTransform*> pTransArray = mOsgObject->getObjTransformArray();
 		pTransArray.push_back(new osg::PositionAttitudeTransform());
+
 		int index = pTransArray.size()-1;
 		pTransArray.at(index)->setAttitude(DEFAULTATTIDUTE);
 		pTransArray.at(index)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
@@ -620,17 +620,20 @@ namespace ARMM
 
 		printf("Client Object number: %d\n", index+1);
 		mOsgObject->IncrementObjCount();
+
+		mOsgObject->setObjTransformArray(pTransArray);
 	}
 
 	void osg_Client::osgAddObjectNode(osg::Node* n, const double & scale)
 	{
 		osgAddObjectNode(n);
 
-		std::vector<osg::PositionAttitudeTransform*> pTransArray =
-				mOsgObject->getObjTransformArray();
-		int index = pTransArray.size()-1;
+		std::vector<osg::PositionAttitudeTransform*> pTransArray = mOsgObject->getObjTransformArray();
+		int index = pTransArray.size() - 1;
 
-		pTransArray[index]->setScale(osg::Vec3d(scale,scale,scale));
+		pTransArray.at(index)->setScale(osg::Vec3d(scale,scale,scale));
+
+		mOsgObject->setObjTransformArray(pTransArray);
 	}
 
 	void osg_Client::osgAddObjectNode(osg::Node* n, const double & scale, const osg::Quat & quat)
@@ -641,8 +644,10 @@ namespace ARMM
 				mOsgObject->getObjTransformArray();
 		int index = pTransArray.size()-1;
 
-		pTransArray[index]->setScale(osg::Vec3d(scale,scale,scale));
-		pTransArray[index]->setAttitude(quat);
+		pTransArray.at(index)->setScale(osg::Vec3d(scale,scale,scale));
+		pTransArray.at(index)->setAttitude(quat);
+
+		mOsgObject->setObjTransformArray(pTransArray);
 	}
 
 	//----->Hand creating and updating
@@ -751,7 +756,7 @@ namespace ARMM
 		osg::Vec3Array::iterator it( verts->begin() );
 
 		//set the position of each node
-		REP(idx, resX*resY)
+		REP(idx, ConstParams::resX*ConstParams::resY)
 		{
 			*it++ = softTexCoord[idx];
 		}

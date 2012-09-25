@@ -82,7 +82,7 @@ namespace ARMM
 				modelFileName += FORMAT;
 				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
 				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
-
+				obj->setName(str);
 				osgrender->osgAddObjectNode(obj.get(), scale);
 				break;
 			}
@@ -103,6 +103,7 @@ namespace ARMM
 //				string modelFileName(FILENAME);
 //				modelFileName += FORMAT;
 //				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama2(modelFileName.c_str(), str.c_str()));
+//				obj->setName(str);
 //				double scale = 20; //for (Cube) for 安原モデル ただしosg3DSFileFromDioramaで調整されていること
 ////				double scale = 300; //for (keyboard) for 安原モデル
 				osgrender->osgAddObjectNode(obj.get(), scale);
@@ -161,14 +162,6 @@ namespace ARMM
 
 
 				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-//				double scale = 80.1012; //サーバ側の値から決定した
-//				obj_pat->setScale(osg::Vec3d(scale,scale,scale));
-//				obj_pat->setAttitude(osg::Quat(
-//					osg::DegreesToRadians(50.f), osg::Vec3d(1.0, 0.0, 0.0),
-//					osg::DegreesToRadians(-50.f), osg::Vec3d(0.0, 1.0, 0.0),
-//					osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
-//					));
-//				obj_pat->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
 				obj_pat->addChild(pObjTexture);
 				osgrender->getOsgObject()->setObjTexturePosAtt(obj_pat);
 				osgrender->getShadowedScene()->addChild(pObjTexturePosAtt);
