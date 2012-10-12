@@ -36,7 +36,7 @@
 #include "ARMM/KeyboardControlls_client.h"
 
 //to get FPS calculation
-#include "TickCounter.h"
+//#include "TickCounter.h"
 
 //standard API
 #include <cstdio>
@@ -494,7 +494,7 @@ namespace ARMM
 					static_cast<double>(h.softT[count][0]),
 					static_cast<double>(h.softT[count][1]),
 					static_cast<double>(h.softT[count][2])
-					               );
+			);
 		}
 	}
 	//<----- Callback function
@@ -518,7 +518,6 @@ namespace ARMM
 
 	ARMM::~ARMM()
 	{
-
 		cvReleaseMat(&RegistrationParams);
 
 		if(mCapture) delete mCapture;
@@ -568,9 +567,6 @@ namespace ARMM
 //			stringstream str("sh TT.sh ");
 //			system(str.str().c_str());
 
-			//clear "Touch" sentence
-//			fontText->setText("");
-
 			//swap the collided object
 			mKC->set_input(100, mOsgRender);
 		}
@@ -616,9 +612,10 @@ namespace ARMM
 
 		RegistrationParams = scaleParams(mCapture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
 		mOsgRender->osg_init(calcProjection(RegistrationParams, mCapture->getDistortion(), REGISTRATION_SIZE));
-
-
 		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 400);
+#if USE_OSGMENU==1
+		mOsgRender->OsgInitMenu();
+#endif
 	//	m_Connection = new vrpn_Connection_IP();
 	//	ARMM_Client = new vrpn_Tracker_Remote ("ARMM_Comm", m_Connection);
 

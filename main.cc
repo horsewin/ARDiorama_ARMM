@@ -5,7 +5,6 @@
 #include <gvars3/instances.h>
 #include "System.h"
 
-
 using namespace std;
 using namespace GVars3;
 

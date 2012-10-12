@@ -56,6 +56,7 @@ namespace ARMM
 	//---------------------------------------------------------------------------
 
 	class osg_Object;
+	class osg_Menu;
 	class osg_Client
 	{
 		public:
@@ -64,6 +65,7 @@ namespace ARMM
 
 			void osg_init(double *projMatrix);
 			void osg_inittracker(std::string markerName, int maxLengthSize, int maxLengthScale);
+			void OsgInitMenu();
 			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort);
 			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort, std::vector <osg::Quat> q_array,std::vector <osg::Vec3d>  v_array);
 			void osg_uninit();
@@ -95,6 +97,7 @@ namespace ARMM
 			uint castShadowMask;
 
 			boost::shared_ptr<osg_Object>mOsgObject;
+			boost::shared_ptr<osg_Menu>mOsgMenu;
 	};
 }
 #endif

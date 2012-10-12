@@ -18,6 +18,7 @@ namespace ARMM
 	//const int HAND_GRID_SIZE = 225;// 15x15
 
 	const char * ConstParams::DATABASEDIR = "/home/umakatsu/Dropbox/Lab/ModelDatabase/";
+	const char * ConstParams::MENUDATADIR = "/home/umakatsu/Dropbox/Lab/MenuDatabase/";
 	//for file loading
 	const char * ConstParams::MARKER_FILENAME = "ARMM/Data/Celica.bmp";
 	//const char *  MARKER_FILENAME "Data/thai_art.jpg"

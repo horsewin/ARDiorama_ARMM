@@ -95,6 +95,7 @@ ARMM = Obj/ARMM_Client.o\
 				Obj/KeyboardControlls_client.o\
 				Obj/osg_Client.o\
 				Obj/osg_Object.o\
+				Obj/osg_Menu.o\
 				Obj/constant.o
 														
 # Object files for an AR Diorama

@@ -3,6 +3,7 @@
 
 #define CAR_SIMULATION 1
 #define SIM_MICROMACHINE 1
+#define USE_OSGMENU 1
 
 #define REP(i,n) for(int i=0;i<(int)n;++i)
 
@@ -46,6 +47,7 @@ namespace ARMM
 
 		//for file loading
 		static const char *	DATABASEDIR;
+		static const char *	MENUDATADIR;
 		static const char *  MARKER_FILENAME;
 		static const char *  CAMERA_PGR_PARAMS_FILENAME;
 		static const char *  CAMERA_PARAMS_FILENAME;

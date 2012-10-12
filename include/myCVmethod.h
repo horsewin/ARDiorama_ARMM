@@ -19,7 +19,8 @@
 using namespace CVD;
 
 template< class T >
-inline void mycvGetGravity(IplImage * src_img , T & gravity_x , T & gravity_y){
+inline void mycvGetGravity(IplImage * src_img , T & gravity_x , T & gravity_y)
+{
 	CvMoments moments;
 	cvMoments (src_img, &moments, 0);
 	gravity_x = static_cast<T>(moments.m10/moments.m00);
@@ -27,7 +28,8 @@ inline void mycvGetGravity(IplImage * src_img , T & gravity_x , T & gravity_y){
 }
 
 template < class T >
-inline void mycvLaplace(IplImage * src_img , T * binary , const int band = 2){
+inline void mycvLaplace(IplImage * src_img , T * binary , const int band = 2)
+{
 	IplImage *dst_img = cvCreateImage(cvSize(src_img->width , src_img->height) , IPL_DEPTH_16S , 1);
 	IplImage *dst = cvCreateImage(cvSize(src_img->width , src_img->height) , IPL_DEPTH_8U , 1);
 	cvCopy(src_img , dst);

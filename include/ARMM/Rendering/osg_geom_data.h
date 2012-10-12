@@ -24,119 +24,47 @@
 #include "Model/Model3ds.h"
 #include "constant.h"
 
-/*
-//osgbullet
-#include <osgbDynamics/MotionState.h>
-#include <osgbCollision/CollisionShapes.h>
-#include <osgbDynamics/RigidBody.h>
-#include <osgbCollision/Utils.h>
-*/
 namespace ARMM
 {
-	osg::Node *createCube()
+	extern osg::Vec3d softTexCoord[ConstParams::resX*ConstParams::resY];
+
+	struct MeshUpdater : public osg::Drawable::UpdateCallback
 	{
-		// vertex array
-		osg::ref_ptr<osg::Vec3Array> vertexArray = new osg::Vec3Array();
+		MeshUpdater( const unsigned int size )
+		  : _size( size )
+		{}
 
-		// bottom front left
-		vertexArray->push_back(osg::Vec3(-1, -1, -1));
-		// bottom front right
-		vertexArray->push_back(osg::Vec3(+1, -1, -1));
-		// bottom back right
-		vertexArray->push_back(osg::Vec3(+1, +1, -1));
-		// bottom back left
-		vertexArray->push_back(osg::Vec3(-1, +1, -1));
-		// top front left
-		vertexArray->push_back(osg::Vec3(-1, -1,  1));
-		// top front right
-		vertexArray->push_back(osg::Vec3(+1, -1,  1));
-		// top back right
-		vertexArray->push_back(osg::Vec3(+1, +1,  1));
-		// top back left
-		vertexArray->push_back(osg::Vec3(-1, +1,  1));
+		virtual ~MeshUpdater()
+		{}
 
-		// face array
-		osg::ref_ptr<osg::DrawElementsUInt> faceArray = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+		virtual void update( osg::NodeVisitor*, osg::Drawable* draw )
+		{
+			osg::Geometry* geom( draw->asGeometry() );
+			osg::Vec3Array* verts( dynamic_cast< osg::Vec3Array* >( geom->getVertexArray() ) );
 
-		// bottom
-		faceArray->push_back(0); // face 1
-		faceArray->push_back(3);
-		faceArray->push_back(1);
-		faceArray->push_back(3); // face 2
-		faceArray->push_back(2);
-		faceArray->push_back(1);
-		// top
-		faceArray->push_back(7);  //face 3
-		faceArray->push_back(4);
-		faceArray->push_back(6);
-		faceArray->push_back(4);  //face 4
-		faceArray->push_back(5);
-		faceArray->push_back(6);
-		// left
-		faceArray->push_back(7);  //face 5
-		faceArray->push_back(3);
-		faceArray->push_back(4);
-		faceArray->push_back(3);  //face 6
-		faceArray->push_back(0);
-		faceArray->push_back(4);
-		// right
-		faceArray->push_back(5);  //face 7
-		faceArray->push_back(1);
-		faceArray->push_back(6);
-		faceArray->push_back(1);  //face 8
-		faceArray->push_back(2);
-		faceArray->push_back(6);
-		// front
-		faceArray->push_back(4);  //face 9
-		faceArray->push_back(0);
-		faceArray->push_back(5);
-		faceArray->push_back(0);   //face 10
-		faceArray->push_back(1);
-		faceArray->push_back(5);
-		// back
-		faceArray->push_back(6);  //face 11
-		faceArray->push_back(2);
-		faceArray->push_back(7);
-		faceArray->push_back(2);   //face 12
-		faceArray->push_back(3);
-		faceArray->push_back(7);
+			// Update the vertex array from the soft body node array.
+			osg::Vec3Array::iterator it( verts->begin() );
+			unsigned int idx = 0;
 
-		osg::ref_ptr<osg::Vec2Array> texcoords = new osg::Vec2Array(8);
-	   (*texcoords)[0].set(.0f, .0f);
-	   (*texcoords)[1].set(1.0f, .0f);
-	   (*texcoords)[2].set(.0f, 1.0f);
-	   (*texcoords)[3].set(1.0f, 1.0f);
-	   (*texcoords)[7].set(.0f, .0f);
-	   (*texcoords)[4].set(1.0f, .0f);
-	   (*texcoords)[6].set(.0f, 1.0f);
-	   (*texcoords)[5].set(1.0f, 1.0f);
+			for( idx=0; idx<_size; idx++)
+			{
+				*it++ = softTexCoord[idx];
+			}
 
-		osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry();
-		geometry->setVertexArray(vertexArray.get());
-		geometry->addPrimitiveSet(faceArray.get());
+			verts->dirty();
+			draw->dirtyBound();
 
-		geometry->setTexCoordArray(0, texcoords.get());
-		osg::ref_ptr<osg::Geode> cube = new osg::Geode();
-
-		// テクスチャに使用する画像を読み込む
-		osg::Image* image = osgDB::readImageFile("ARMM/Data/rec/button.png");
-		if (image) {
-
-			osg::Texture2D* texture = new osg::Texture2D();
-			// protect from being optimized away as static state:
-
-			// Create a new StateSet with default settings:
-			osg::StateSet* stateOne = new osg::StateSet();
-			stateOne->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
-			stateOne->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-			texture->setImage(image);
-		   cube->setStateSet(stateOne);
+			// Generate new normals.
+			osgUtil::SmoothingVisitor smooth;
+			smooth.smooth( *geom );
+			geom->getNormalArray()->dirty();
 		}
-		cube->addDrawable(geometry.get());
-		return cube.release();
-	}
 
-	osg::Node* osgSphereNode(float sphere_size) {
+		const unsigned int _size;
+	};
+
+	osg::Node* osgSphereNode(float sphere_size)
+	{
 		float scale = 10;
 
 		osg::ref_ptr<osg::Sphere> sphere = new osg::Sphere(osg::Vec3d(0,0,0), sphere_size*scale);
@@ -147,7 +75,8 @@ namespace ARMM
 		return geode.release();
 	}
 
-	osg::Node* osgBoxNode(float box_size) {
+	osg::Node* osgBoxNode(float box_size)
+	{
 		float scale = 10;
 
 		osg::ref_ptr<osg::Box> box= new osg::Box(osg::Vec3d(0,0,0), box_size*scale);
@@ -321,6 +250,9 @@ namespace ARMM
 				stateSet->setTextureAttributeAndModes( 0, tex );
 			}
 		}
+
+		geom->setUpdateCallback( new MeshUpdater( ConstParams::resX * ConstParams::resY));
+
 		return (geode.release());
 	}
 
@@ -368,15 +300,6 @@ namespace ARMM
 						/ model->nmaterials);//適当にメモリ確保
 			}
 		}
-
-	//	//材質デフォルトのメモリ確保
-	//	MatDefault.meshIdx.resize(model->nmeshes);
-	//	for (int loop1 = 0; loop1 < model->nmeshes; ++loop1) {
-	//		mesh = model->meshes[loop1];
-	//		if (model->nmaterials != 0){
-	//			MatDefault.meshIdx[loop1].faceId.reserve(mesh->nfaces / model->nmaterials);
-	//		}
-	//	}
 
 		//材質データ構造に対応するメッシュデータIDを格納する
 		static int MatId = 0;

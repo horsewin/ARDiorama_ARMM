@@ -19,6 +19,7 @@
 
 namespace ARMM
 {
+
 	using namespace std;
 
 	extern int		collidedNodeInd;
@@ -52,8 +53,7 @@ namespace ARMM
 		switch(key)
 		{
 			case 78://N
-//				osgAddObjectNode(osgSphereNode(SPHERE_SIZE));
-//				Virtual_Objects_Count++;
+				osgrender->osgAddObjectNode(osgSphereNode(SPHERE_SIZE));
 				break;
 
 			case 65:
@@ -128,6 +128,7 @@ namespace ARMM
 				osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = osgrender->getOsgObject()->getObjTexturePosAtt();
 				osgrender->getShadowedScene()->removeChild(pObjTexture);
 				pObjTexturePosAtt->removeChild(pObjTexture);
+				osgrender->getOsgObject()->setSoftTexture(false);
 
 				//getting the index of the child node
 				std::vector<osg::Node*> pObjNodeArray
@@ -151,25 +152,27 @@ namespace ARMM
 			case 101:
 			{
 				osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
-				osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = osgrender->getOsgObject()->getObjTexturePosAtt();
 
 				//parts node
 				string str(ConstParams::DATABASEDIR);
-				const char * file = "key2.bmp";
+				const char * file = "LSCM_Newcube0.bmp";
 				str += file;
 				pObjTexture = osgCreateSoft(str.c_str());
 				LoadCheck(pObjTexture.get(), str.c_str());
 
-
-				osg::ref_ptr<osg::PositionAttitudeTransform> obj_pat = new osg::PositionAttitudeTransform();
-				obj_pat->addChild(pObjTexture);
-				osgrender->getOsgObject()->setObjTexturePosAtt(obj_pat);
-				osgrender->getShadowedScene()->addChild(pObjTexturePosAtt);
-
-				//				shadowedScene->addChild(objTexture);
+				osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = new osg::PositionAttitudeTransform();
+				pObjTexturePosAtt->addChild(pObjTexture);
 				pObjTexturePosAtt->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
-				cout << "<<Create a texture image with ocurring collision>>" << endl;
+
+				osgrender->getShadowedScene()->addChild(pObjTexture);
+				osgrender->getOsgObject()->setObjTexture(pObjTexture);
+
+//				osgrender->getShadowedScene()->addChild(pObjTexturePosAtt);
+//				osgrender->getOsgObject()->setObjTexturePosAtt(pObjTexturePosAtt);
+//				osgrender->getOsgObject()->setSoftTexture(true);
+
+				cout << "<<Create a texture image with ocurring collision>> " << endl;
 
 				break;
 			}
