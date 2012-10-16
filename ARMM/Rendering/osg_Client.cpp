@@ -495,16 +495,7 @@ namespace ARMM
 
 	void osg_Client::OsgInitMenu()
 	{
-		//register some components
-		mOsgMenu->CreateButtonFile("Controller.3ds", osg::Vec3d( 0, -80, 0));
-		mOsgMenu->CreateButtonFile("SphereButton.3ds");
-		mOsgMenu->CreateButtonFile("car1.3ds", osg::Vec3d(-25, -0, 0));
-		mOsgMenu->CreateButtonFile("car2.3ds", osg::Vec3d(-50, -0, 0));
-		mOsgMenu->CreateButtonFile("ScaleButton.3ds", osg::Vec3d(0, -30, 0));
-		mOsgMenu->CreateButtonFile("ScaleButton2.3ds", osg::Vec3d(-25, -30, 0));
-		mOsgMenu->CreateButtonFile("RollButton.3ds", osg::Vec3d(0, -60, 0));
-		mOsgMenu->CreateButtonFile("PitchButton.3ds", osg::Vec3d(-25, -60, 0));
-		mOsgMenu->CreateButtonFile("YawButton.3ds", osg::Vec3d(-50, -60, 0));
+		mOsgMenu->CreateMenuPane();
 
 		std::vector<osg::PositionAttitudeTransform*> pTransArray = mOsgMenu->getObjMenuTransformArray();
 
@@ -530,7 +521,6 @@ namespace ARMM
 		shadowedScene->addChild(menuTrans.get());
 
 		mOsgMenu->setObjMenuTransformArray(pTransArray);
-
 	}
 
 	void osg_Client::osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort)
@@ -686,7 +676,7 @@ namespace ARMM
 
 		mOsgObject->IncrementObjIndex();
 
-		printf("Client Object number: %d\n", index+1);
+		printf("Client Object(%s). Number: %d\n", n->getName().c_str(), index+1);
 		mOsgObject->IncrementObjCount();
 
 		mOsgObject->setObjTransformArray(pTransArray);
@@ -817,6 +807,8 @@ namespace ARMM
 
 	void osg_Client::osg_UpdateSoftTexture()
 	{
+		if(mOsgObject->getObjTexturePosAtt() == NULL) return;
+
 		osg::Geode * geode(mOsgObject->getObjTexturePosAtt()->asGeode());
 		if( geode == NULL) return;
 

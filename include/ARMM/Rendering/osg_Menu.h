@@ -45,9 +45,10 @@ namespace ARMM
 			mObjMenuTransformArray = objMenuTransformArray;
 		}
 
-		void CreateButtonUnit(const float & boxsize, osg::Vec4f color = osg::Vec4f(1.0, 1.0, 1.0, 1.0));
-		void CreateButtonFile(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0.0, 0.0, 0.0));
-		void CreatePlane();
+		void CreateMenuPane( void );
+
+	private:
+		void CreateUnit(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0,0,0));
 
 	private:
 		osg::Quat DEFAULTATTIDUTE;

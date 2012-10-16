@@ -27,6 +27,7 @@ namespace ARMM
 	const float CUBE_SIZE = 4;
 	const float SPHERE_SIZE = 2;//FULL SIZE
 
+	extern std::string pDstModel; //actually this should be deal with member of Keyboard class, but some error occurred so could not do it...
 	int KeyboardController_client::check_input()
 	{
 		if (getKey(78)) {//N
@@ -73,27 +74,51 @@ namespace ARMM
 ////				float scale = 0.005;//GreenTable
 //				float scale = 10;//GreenTorus
 //
+				ostringstream str;
+				const char * format = ".3ds";
+				const char * filename = "ItimatsuCow";
+//				if(mSrcModel.empty())
+//				{
+//					mSrcModel = filename;
+//				}
+//				else
+//				{
+//					m
+//				}
+				str << ConstParams::DATABASEDIR << filename << "/" << filename << format;
+				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+				LoadCheck(obj.get(), str.str().c_str());
+				string tmpFilename(filename);
+				tmpFilename += format;
+				obj->setName(tmpFilename);
+
+				float scale = 10;
+
 //				//安原モデルの場合、テクスチャ座標の調整が必要
-				string str(ConstParams::DATABASEDIR);
-				const char * FORMAT = ".3ds";
-				const char * FILENAME = "keyboard";
-				str += FILENAME; str+="/";
-				string modelFileName(FILENAME);
-				modelFileName += FORMAT;
-				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
-				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
-				obj->setName(str);
+//				string str(ConstParams::DATABASEDIR);
+//				const char * FORMAT = ".3ds";
+//				const char * FILENAME = "keyboard";
+//				str += FILENAME; str+="/";
+//				string modelFileName(FILENAME);
+//				modelFileName += FORMAT;
+//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
+//				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
+//				obj->setName(str);
 				osgrender->osgAddObjectNode(obj.get(), scale);
 				break;
 			}
 
 			case 80: {//p
 				ostringstream str;
-				const char * FORMAT = ".3ds";
-				const char * FILENAME = "WoodTable";
-				str << ConstParams::DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+				const char * format = ".3ds";
+				const char * filename = "cow";
+				str << ConstParams::DATABASEDIR << filename << "/" << filename << format;
 				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
 				LoadCheck(obj.get(), str.str().c_str());
+				string tmpFilename(filename);
+				tmpFilename += format;
+				obj->setName(tmpFilename);
+
 				float scale = 10;
 
 ////				//安原モデルの場合、テクスチャ座標の調整が必要
@@ -117,11 +142,21 @@ namespace ARMM
 				break;
 
 			case 100: {// This function is called after texture transferred
+				if(pDstModel.empty())
+				{
+					cerr << "No name of dst model" << endl;
+					return;
+				}
+
+				printf("Destination model = %s\n", pDstModel.c_str());
 
 				ostringstream str;
-				const char * FILENAME = "Newcow";
-				const char * FORMAT = ".3ds";
-				str << ConstParams::DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+//				const char * FILENAME = "Newcow";
+//				str << ConstParams::DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
+				string dir = pDstModel.substr(0, pDstModel.size()-4);
+				str << ConstParams::DATABASEDIR << "New" <<  dir.c_str() << "/" << "New" << pDstModel.c_str();
+
+				cout << str.str().c_str() << endl;
 
 				//remove the texture image object
 				osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
@@ -131,15 +166,17 @@ namespace ARMM
 				osgrender->getOsgObject()->setSoftTexture(false);
 
 				//getting the index of the child node
-				std::vector<osg::Node*> pObjNodeArray
+				vector<osg::Node*> pObjNodeArray
 					= osgrender->getOsgObject()->getObjNodeArray();
-				std::vector<osg::PositionAttitudeTransform *> pObjTransformArray
+				vector<osg::PositionAttitudeTransform *> pObjTransformArray
 					= osgrender->getOsgObject()->getObjTransformArray();
 				int childInd = pObjTransformArray[collidedNodeInd]
 							   ->getChildIndex(pObjNodeArray[collidedNodeInd]);
 
 				//swap a child of the objects node with new child node
-				pObjTransformArray[collidedNodeInd]->setChild(childInd, osgDB::readNodeFile(str.str().c_str()));
+				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+				LoadCheck(obj.get(), str.str().c_str());
+				pObjTransformArray[collidedNodeInd]->setChild(childInd, obj.get());
 				double scale = 10; //
 //				double scale = 20; //安原Cube
 //				double scale = 300;
@@ -169,7 +206,7 @@ namespace ARMM
 				osgrender->getOsgObject()->setObjTexture(pObjTexture);
 
 //				osgrender->getShadowedScene()->addChild(pObjTexturePosAtt);
-//				osgrender->getOsgObject()->setObjTexturePosAtt(pObjTexturePosAtt);
+				osgrender->getOsgObject()->setObjTexturePosAtt(pObjTexturePosAtt);
 //				osgrender->getOsgObject()->setSoftTexture(true);
 
 				cout << "<<Create a texture image with ocurring collision>> " << endl;

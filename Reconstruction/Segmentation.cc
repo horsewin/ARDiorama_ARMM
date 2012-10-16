@@ -805,10 +805,14 @@ namespace PTAMM{
 				pb[address] 	= CDF(static_cast<double>(Pr_b[address])/DIST_MAX);
 	//			po[address]	= sigmoid(static_cast<double>(Pr_o[address])/DIST_MAX);
 	//			pb[address] 	= sigmoid(static_cast<double>(Pr_b[address])/DIST_MAX);
-				if(po[address] > pb[address]);
-				else po[address] = 1 - pb[address];
+				if(po[address] <= pb[address])
+				{
+					po[address] = 1 - pb[address];
+				}
 				pb[address] = 1 - po[address];
-				REP(ii,ratio) REP(jj,ratio){
+
+				REP(ii,ratio) REP(jj,ratio)
+				{
 					x = (i*ratio + ii);
 					y = (j*ratio + jj);
 					//	領域生成
@@ -1025,8 +1029,14 @@ namespace PTAMM{
 				//確率分布生成
 				Pr_object[i]	= CDF(static_cast<double>(Pr_o[i])/DIST_MAX);
 				Pr_back[i] 	= CDF(static_cast<double>(Pr_b[i])/DIST_MAX);
-				if(Pr_object[i] > Pr_back[i]);
-				else Pr_object[i] = 1 - Pr_back[i];
+				if(Pr_object[i] > Pr_back[i])
+				{
+
+				}
+				else
+				{
+					Pr_object[i] = 1 - Pr_back[i];
+				}
 				Pr_back[i] = 1 - Pr_object[i];
 		#if OUTPUT_DEST
 				REP(j,3) fprintf(fo,"%lf\t",Pr_object[i]*255);

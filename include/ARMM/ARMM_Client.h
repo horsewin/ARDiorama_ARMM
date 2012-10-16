@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 #include <cstdio>
 #include <cmath>
+#include <cstring>
 
 #include "vrpn_Tracker.h"
 #include "vrpn_Connection.h"
@@ -122,6 +123,8 @@ namespace ARMM
 		Capture *mCapture;
 		#endif
 
+		std::string mSrcFile;
+		std::string mDstFile;
 	};
 
 	#ifdef USE_CLIENT_SENDER

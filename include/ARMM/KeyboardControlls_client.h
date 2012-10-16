@@ -1,6 +1,9 @@
 #ifndef KEYBOARD_CONTROLSCLIENT_H
 #define KEYBOARD_CONTROLSCLIENT_H
 
+//Standard API
+#include <string>
+
 //boost API
 #include <boost/shared_ptr.hpp>
 
@@ -10,6 +13,7 @@ namespace ARMM
 
 	class KeyboardController_client
 	{
+
 	public:
 		KeyboardController_client(){};
 		~KeyboardController_client(){};
@@ -18,6 +22,7 @@ namespace ARMM
 
 	private:
 		inline bool getKey(int key);
+
 
 	};
 }

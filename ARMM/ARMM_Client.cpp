@@ -66,6 +66,8 @@ namespace ARMM
 	char filename[] = "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/debug_remote.txt";
 	std::ofstream output(filename);
 
+	std::string pDstModel;
+
 //	osgText::Text * fontText;
 
 	//these coord are considered as Bullet coord
@@ -91,11 +93,6 @@ namespace ARMM
 #endif /* #if CAR_SIMULATION == 1 */
 	osg::Vec3d		ObjectsArrayPos[ConstParams::NUM_OBJECTS];
 	osg::Quat		ObjectsArrayQuat[ConstParams::NUM_OBJECTS];
-
-//	void RenderScene(IplImage *arImage, Capture *capture);
-//	void DeleteLostObject(void);
-//	void InitVirtualObjectsCoordinate(void);
-
 
 	//---------------------------------------------------------------------------
 	// Constant/Define
@@ -448,7 +445,8 @@ namespace ARMM
 		}
 
 		//----->Collision checker
-		else if( t.sensor > ConstParams::CAR_PARAM && t.sensor <= ConstParams::COLLISION_PARAM){
+		else if( t.sensor > ConstParams::CAR_PARAM && t.sensor <= ConstParams::COLLISION_PARAM)
+		{
 			REP(p,3){
 				pCollision[p] = (float)t.pos[p];			// the position of collision
 			}
@@ -524,6 +522,8 @@ namespace ARMM
 		delete mKC;
 	}
 
+//TODO acquiring the mesh data of environment from server program
+// to display proper occlusion rendering
 	void ARMM::Run()
 	{
 
@@ -562,8 +562,14 @@ namespace ARMM
 			collidedNodeInd = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) - (objIndex  - collisionInd);
 			output << "d " << endl; //as delimitar
 			GetCollisionCoordinate(collidedNodeInd);
+			pDstModel = mOsgRender->getOsgObject()->getObjNodeArray().at(collidedNodeInd)->getName();
 
-//			//Running "Texture Transfer exe"
+
+			//Running "Texture Transfer exe"
+//			std::ofstream shellFile("TT.sh");
+//			shellFile << "#!/bin/sh" << endl;
+//			shellFile << "cd ~/TextureTransfer/TextureTransfer" << endl;
+//			shellFile << "./TT Model3DS/debug_remote.txt ";
 //			stringstream str("sh TT.sh ");
 //			system(str.str().c_str());
 
@@ -697,7 +703,9 @@ namespace ARMM
 		obj_ind.clear();
 		for(int i = 0; i < mOsgRender->getOsgObject()->getVirtualObjectsCount(); i++)
 		{
-			if( ObjectsArrayPos[i].z() < -100 ){
+			//an object dropped under threshold
+			if( ObjectsArrayPos[i].z() < -100 )
+			{
 				obj_ind.push_back(i);
 				//writeback coord
 				if( mOsgRender->getOsgObject()->getVirtualObjectsCount() == 1){}
@@ -786,6 +794,10 @@ namespace ARMM
 						cout << "All of Object index = " << mOsgRender->getOsgObject()->getObjectIndex() << endl;
 						int ind = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) -
 								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd);
+
+						//restoring the name of collided model
+						mSrcFile = mOsgRender->getOsgObject()->getObjNodeArray().at(ind)->getName();
+						cout << "Collided model name = " << mSrcFile.c_str() << endl;
 
 						//make the updater for soft texture ON
 						mOsgRender->getOsgObject()->setSoftTexture(true);

@@ -1,6 +1,9 @@
 /*
  * osg_Menu.cpp
  *
+ * This file should be copied with Server osg_Menu.cpp
+ * Otherwise, menu buttons must have been operated properly because collision is detected in server part
+ *
  *  Created on: 2012/09/27
  *      Author: umakatsu
  */
@@ -54,54 +57,21 @@ namespace ARMM
 		mObjMenuTransformArray.push_back(t);
 	}
 
-	void osg_Menu::CreatePlane()
+	void osg_Menu::CreateMenuPane()
 	{
-		const short resX(12), resY(9);
-		osg::ref_ptr< osg::Geode > geode( new osg::Geode );
-		const osg::Vec3 llCorner( 0.0, .0, 0.0 );
-		const osg::Vec3 uVec( 100.0, 0.0, 0.0 );
-		const osg::Vec3 vVec( 0.0, 100.0, 0.0 ); // Must be at a slight angle for wind to catch it.
-		osg::Geometry* geom = osgwTools::makePlane( llCorner, uVec, vVec, osg::Vec2s( resX-1, resY-1 ) );
-		geode->addDrawable( geom );
-
-		mObjMenuNodeArray.push_back(geode.release());
-
-		float scale = 1;
-		mObjMenuTransformArray.push_back(new osg::PositionAttitudeTransform());
-		const osg::Quat attitude = DEFAULTATTIDUTE;
-		mObjMenuTransformArray.back()->addChild(geode.get());
-		mObjMenuTransformArray.back()->setAttitude(attitude);
-		mObjMenuTransformArray.back()->setPosition(osg::Vec3(250.0, -50.0, 30.0));
-		mObjMenuTransformArray.back()->setScale(osg::Vec3d(scale,scale,scale));
-		mObjMenuTransformArray.back()->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+		//register some components
+		CreateUnit("Controller.3ds", osg::Vec3d( 0, -80, 0));
+		CreateUnit("SphereButton.3ds");
+		CreateUnit("car1.3ds", osg::Vec3d(-25, -0, 0));
+		CreateUnit("car2.3ds", osg::Vec3d(-50, -0, 0));
+		CreateUnit("ScaleButton.3ds", osg::Vec3d(0, -30, 0));
+		CreateUnit("ScaleButton2.3ds", osg::Vec3d(-25, -30, 0));
+		CreateUnit("RollButton.3ds", osg::Vec3d(0, -60, 0));
+		CreateUnit("PitchButton.3ds", osg::Vec3d(-25, -60, 0));
+		CreateUnit("YawButton.3ds", osg::Vec3d(-50, -60, 0));
 	}
 
-	void osg_Menu::CreateButtonUnit(const float & boxsize, osg::Vec4f color)
-	{
-		osg::ref_ptr<osg::Node> node;
-		//create button unit with osg::Node
-		float scale = 10;
-		osg::ref_ptr<osg::Box> box= new osg::Box(osg::Vec3d(0,0,0), boxsize*scale);
-		osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable( box.get() );
-		shape->setColor(color);
-		osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-		geode->addDrawable( shape.get() );
-		node = geode.get();
-
-
-		mObjMenuNodeArray.push_back(node.get());
-
-		mObjMenuTransformArray.push_back(new osg::PositionAttitudeTransform());
-		const osg::Quat attitude = DEFAULTATTIDUTE;
-		mObjMenuTransformArray.back()->addChild(node.get());
-		mObjMenuTransformArray.back()->setAttitude(attitude);
-		mObjMenuTransformArray.back()->setPosition(osg::Vec3(250.0, -50.0, 0.0));
-		mObjMenuTransformArray.back()->setScale(osg::Vec3d(scale,scale,scale));
-		mObjMenuTransformArray.back()->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
-
-	}
-
-	void osg_Menu::CreateButtonFile(const char * buttonfilename, osg::Vec3d pos)
+	void osg_Menu::CreateUnit(const char * buttonfilename, osg::Vec3d pos)
 	{
 		//create button unit with osg::Node
 		std::string str(ConstParams::MENUDATADIR);
