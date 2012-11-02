@@ -45,7 +45,7 @@ ARMMLIB=-L/home/umakatsu/desktop/Lab/M1/OPIRALIBRARY -L/home/umakatsu/Download/v
 
 #COMPILEFLAGS = -I MY_CUSTOM_INCLUDE_PATH -D_LINUX -D_REENTRANT -Wall  -O3 -march=nocona -msse3 -fno-strict-aliasing
 #LINKFLAGS = -L MY_CUSTOM_LINK_PATH -lGVars3 -lcvd $(3DSLIB)
-COMPILEFLAGS = -I MY_CUSTOM_INCLUDE_PATH -I./include -I/usr/include -I/usr/include/opencv -I/usr/include/flycapture -D_LINUX -D_REENTRANT -Wall -march=nocona -pipe -fno-strict-aliasing -mfpmath=sse -fomit-frame-pointer -msse3 -fno-tree-vectorize -g -fpermissive -DNDEBUG -fPIC 
+COMPILEFLAGS = -I MY_CUSTOM_INCLUDE_PATH -I./include -I/usr/include -I/usr/include/opencv -I/usr/include/flycapture -D_LINUX -D_REENTRANT -Wall -march=nocona -pipe -fno-strict-aliasing -mfpmath=sse -fomit-frame-pointer -msse3 -fno-tree-vectorize -fpermissive -DNDEBUG -fPIC -g
 LINKFLAGS = -L MY_CUSTOM_LINK_PATH -L/usr/local/lib -lGLEW -lblas -llapack -lGVars3 -lcvd -lboost_serialization -lflycapture -lgslcblas -losgwTools
 # -lhighgui -lcvaux -lcv -lml -lcxcore
 

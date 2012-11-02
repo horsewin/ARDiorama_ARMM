@@ -66,6 +66,7 @@ namespace ARMM
 	char filename[] = "/home/umakatsu/TextureTransfer/TextureTransfer/Model3DS/debug_remote.txt";
 	std::ofstream output(filename);
 
+	std::string pSrcModel;
 	std::string pDstModel;
 
 //	osgText::Text * fontText;
@@ -533,6 +534,13 @@ namespace ARMM
 		IplImage *arImage = mCapture->getFrame();
 		RenderScene(arImage, mCapture);
 		cvReleaseImage(&arImage);
+
+		//change the condition of regular state if lists of models is shown in AR space into invisible condition
+		if(mOsgRender->IsModelButtonVisibiilty())
+		{
+			mOsgRender->ToggleModelButtonVisibility();
+		}
+
 #ifdef USE_CLIENT_SENDER
 		ARMM_client_sender->SetPasskey( mKC->check_input() );
 		if( ARMM_client_sender->GetPasskey()  != 0){
@@ -564,14 +572,18 @@ namespace ARMM
 			GetCollisionCoordinate(collidedNodeInd);
 			pDstModel = mOsgRender->getOsgObject()->getObjNodeArray().at(collidedNodeInd)->getName();
 
-
 			//Running "Texture Transfer exe"
-//			std::ofstream shellFile("TT.sh");
-//			shellFile << "#!/bin/sh" << endl;
-//			shellFile << "cd ~/TextureTransfer/TextureTransfer" << endl;
-//			shellFile << "./TT Model3DS/debug_remote.txt ";
-//			stringstream str("sh TT.sh ");
-//			system(str.str().c_str());
+			std::ofstream shellFile("TT.sh");
+			shellFile << "#!/bin/sh" << endl;
+			shellFile << "cd ~/TextureTransfer/TextureTransfer" << endl;
+			shellFile << "./TT Model3DS/debug_remote.txt " << pSrcModel.c_str() << " " << pDstModel.c_str();
+			shellFile.close();
+			stringstream str("sh TT.sh ");
+			cout << "Execute shell command!!" << endl;
+			if(system(str.str().c_str()) < 0)
+			{
+				cerr << "Occurring command error!" << endl;
+			}
 
 			//swap the collided object
 			mKC->set_input(100, mOsgRender);
@@ -608,7 +620,8 @@ namespace ARMM
 		for(int i =0; i < ConstParams::NUM_CARS; i++) {
 			CarsArrayPos[i] = osg::Vec3d(0,0,0);
 			CarsArrayQuat[i] = osg::Quat(0,0,0,1);
-			for(int j =0; j < ConstParams::NUM_WHEELS; j++) {
+			for(int j =0; j < ConstParams::NUM_WHEELS; j++)
+			{
 				WheelsArrayPos[i][j] = osg::Vec3d(0,0,0);
 				WheelsArrayQuat[i][j] = osg::Quat(0,0,0,1);
 			}
@@ -621,6 +634,7 @@ namespace ARMM
 		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 400);
 #if USE_OSGMENU==1
 		mOsgRender->OsgInitMenu();
+		mOsgRender->OsgInitModelButton();
 #endif
 	//	m_Connection = new vrpn_Connection_IP();
 	//	ARMM_Client = new vrpn_Tracker_Remote ("ARMM_Comm", m_Connection);
@@ -634,13 +648,13 @@ namespace ARMM
 		mARMMClient->ARMMClient::register_change_handler(NULL, handle_softtextures);
 		//<-----
 
-
+		mKC = new KeyboardController_client;
 
 		#ifdef USE_CLIENT_SENDER
 		//----->Client_sender part
 		m_Connection = new vrpn_Connection_IP();
 		ARMM_client_sender = new ARMMClientSender(m_Connection);
-	  cout << "Created VRPN server." << endl;
+		cout << "Created VRPN server." << endl;
 		//<-----
 		#endif
 		m_pass = 0;
@@ -796,8 +810,8 @@ namespace ARMM
 								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd);
 
 						//restoring the name of collided model
-						mSrcFile = mOsgRender->getOsgObject()->getObjNodeArray().at(ind)->getName();
-						cout << "Collided model name = " << mSrcFile.c_str() << endl;
+						pSrcModel = mOsgRender->getOsgObject()->getObjNodeArray().at(ind)->getName();
+						cout << "Source model name = " << pSrcModel.c_str() << endl;
 
 						//make the updater for soft texture ON
 						mOsgRender->getOsgObject()->setSoftTexture(true);

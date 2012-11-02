@@ -51,77 +51,71 @@ namespace ARMM
 			return;
 		}
 
-		switch(key)
+		const int offset = 79;
+		switch(key) 		//A 65 S 83 D 68 W 87 F 70 V 86
 		{
 			case 78://N
 				osgrender->osgAddObjectNode(osgSphereNode(SPHERE_SIZE));
-				break;
-
-			case 65:
 				break;
 
 			case 66: //B
 				osgrender->osgAddObjectNode(osgBoxNode(CUBE_SIZE));
 				break;
 
-			case 79: {//o
-//				ostringstream str;
-//				const char * FILENAME = "ColorTorus";
-//				const char * FORMAT = ".3ds";
-//				str << DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
-//				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-//				LoadCheck(obj.get(), str.str().c_str());
-////				float scale = 0.005;//GreenTable
-//				float scale = 10;//GreenTorus
-//
-				ostringstream str;
-				const char * format = ".3ds";
-				const char * filename = "ItimatsuCow";
-//				if(mSrcModel.empty())
-//				{
-//					mSrcModel = filename;
-//				}
-//				else
-//				{
-//					m
-//				}
-				str << ConstParams::DATABASEDIR << filename << "/" << filename << format;
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-				LoadCheck(obj.get(), str.str().c_str());
-				string tmpFilename(filename);
-				tmpFilename += format;
-				obj->setName(tmpFilename);
-
-				float scale = 10;
-
-//				//安原モデルの場合、テクスチャ座標の調整が必要
-//				string str(ConstParams::DATABASEDIR);
-//				const char * FORMAT = ".3ds";
-//				const char * FILENAME = "keyboard";
-//				str += FILENAME; str+="/";
-//				string modelFileName(FILENAME);
-//				modelFileName += FORMAT;
-//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama(modelFileName.c_str(), str.c_str()));
-//				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
-//				obj->setName(str);
-				osgrender->osgAddObjectNode(obj.get(), scale);
+			// This function is called after texture transferred
+			case 100: {
+				SwapingObject(osgrender);
 				break;
 			}
 
-			case 80: {//p
-				ostringstream str;
-				const char * format = ".3ds";
-				const char * filename = "cow";
-				str << ConstParams::DATABASEDIR << filename << "/" << filename << format;
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-				LoadCheck(obj.get(), str.str().c_str());
-				string tmpFilename(filename);
-				tmpFilename += format;
-				obj->setName(tmpFilename);
+			//creating a texture sticked in hand when collision occurred
+			case 101:
+			{
+				const char * file = "LSCM_Newcube0.bmp";
+				if(!RegisteringSoftObject(file, osgrender))
+				{
+					cerr << "Error: register soft object(texture) into rendering components" << endl;
+				}
+				break;
+			}
 
-				float scale = 10;
+			//adding a virtual object into the AR environment
+			default:
+				if( key > 78 && (key - offset) < static_cast<int>(mKeyAssignment.size()) )
+				{
+					if(!RegisteringObject(mKeyAssignment.at(key-offset).second.c_str(), osgrender))
+					{
+						cerr << "Error: register object into rendering components" << endl;
+					}
+				}
+				break;
 
-////				//安原モデルの場合、テクスチャ座標の調整が必要
+		}
+	}
+
+	bool KeyboardController_client::getKey(int key)
+	{
+		return false;
+	}
+
+	bool KeyboardController_client::RegisteringObject(const char * filename, boost::shared_ptr<osg_Client> osgrender)
+	{
+		float scale = 10;
+		ostringstream str;
+		const char * format = ".3ds";
+
+		str << ConstParams::DATABASEDIR << filename << "/" << filename << format;
+		osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+		if(!LoadCheck(obj.get(), str.str().c_str()))
+		{
+			return false;
+		}
+
+		string tmpFilename(filename);
+		tmpFilename += format;
+		obj->setName(tmpFilename);
+
+////				//安原モデルの場合、テクスチャ座標の調整が必要(Cube)
 //				string str(DATABASEDIR);
 //				const char * FILENAME = "cube";
 //				str += FILENAME; str+="/";
@@ -131,95 +125,133 @@ namespace ARMM
 //				obj->setName(str);
 //				double scale = 20; //for (Cube) for 安原モデル ただしosg3DSFileFromDioramaで調整されていること
 ////				double scale = 300; //for (keyboard) for 安原モデル
-				osgrender->osgAddObjectNode(obj.get(), scale);
-				break;
-			}
 
+//				//安原モデルの場合、テクスチャ座標の調整が必要(Keyboard)
+//				const char * FILENAME = "keyboard";
+//				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
+		osgrender->osgAddObjectNode(obj.get(), scale);
 
-			case 68:
-				break;
-			case 83:
-				break;
+		return true;
+	}
 
-			case 100: {// This function is called after texture transferred
-				if(pDstModel.empty())
-				{
-					cerr << "No name of dst model" << endl;
-					return;
-				}
+	void KeyboardController_client::SwapingObject( boost::shared_ptr<osg_Client> osgrender )
+	{
+		if(pDstModel.empty())
+		{
+			cerr << "No name of dst model" << endl;
+			return;
+		}
 
-				printf("Destination model = %s\n", pDstModel.c_str());
+		printf("Destination model = %s\n", pDstModel.c_str());
 
-				ostringstream str;
+		ostringstream str;
 //				const char * FILENAME = "Newcow";
 //				str << ConstParams::DATABASEDIR << FILENAME << "/" << FILENAME << FORMAT;
-				string dir = pDstModel.substr(0, pDstModel.size()-4);
-				str << ConstParams::DATABASEDIR << "New" <<  dir.c_str() << "/" << "New" << pDstModel.c_str();
+		string dir = pDstModel.substr(0, pDstModel.size()-4);
+		str << ConstParams::DATABASEDIR << "New" <<  dir.c_str() << "/" << "New" << pDstModel.c_str();
 
-				cout << str.str().c_str() << endl;
+		//remove the texture image object
+		osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
+		osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = osgrender->getOsgObject()->getObjTexturePosAtt();
+		osgrender->getShadowedScene()->removeChild(pObjTexture);
+		pObjTexturePosAtt->removeChild(pObjTexture);
+		osgrender->getOsgObject()->setSoftTexture(false);
 
-				//remove the texture image object
-				osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
-				osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = osgrender->getOsgObject()->getObjTexturePosAtt();
-				osgrender->getShadowedScene()->removeChild(pObjTexture);
-				pObjTexturePosAtt->removeChild(pObjTexture);
-				osgrender->getOsgObject()->setSoftTexture(false);
+		//getting the index of the child node
+		vector<osg::Node*> pObjNodeArray
+			= osgrender->getOsgObject()->getObjNodeArray();
+		vector<osg::PositionAttitudeTransform *> pObjTransformArray
+			= osgrender->getOsgObject()->getObjTransformArray();
+		int childInd = pObjTransformArray[collidedNodeInd]
+					   ->getChildIndex(pObjNodeArray[collidedNodeInd]);
 
-				//getting the index of the child node
-				vector<osg::Node*> pObjNodeArray
-					= osgrender->getOsgObject()->getObjNodeArray();
-				vector<osg::PositionAttitudeTransform *> pObjTransformArray
-					= osgrender->getOsgObject()->getObjTransformArray();
-				int childInd = pObjTransformArray[collidedNodeInd]
-							   ->getChildIndex(pObjNodeArray[collidedNodeInd]);
-
-				//swap a child of the objects node with new child node
-				osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
-				LoadCheck(obj.get(), str.str().c_str());
-				pObjTransformArray[collidedNodeInd]->setChild(childInd, obj.get());
-				double scale = 10; //
+		//swap a child of the objects node with new child node
+		osg::ref_ptr<osg::Node> obj = osgDB::readNodeFile(str.str().c_str());
+		LoadCheck(obj.get(), str.str().c_str());
+		str.clear();
+		str << "New" << pDstModel.c_str();
+		pObjTransformArray[collidedNodeInd]->setChild(childInd, obj.get());
+//		pObjNodeArray[collidedNodeInd]->setName(str.str());
+		double scale = 10; //
 //				double scale = 20; //安原Cube
 //				double scale = 300;
-				pObjTransformArray[collidedNodeInd]->setScale(osg::Vec3d(scale,scale,scale));
-				collision = false;
-				break;
-			}
+		pObjTransformArray[collidedNodeInd]->setScale(osg::Vec3d(scale,scale,scale));
+		collision = false;
+	}
 
-			//creating a texture sticked in hand when collision occurred
-			case 101:
-			{
-				osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
+	bool KeyboardController_client::RegisteringSoftObject(const char * filename, boost::shared_ptr<osg_Client> osgrender)
+	{
+		osg::ref_ptr<osg::Node> pObjTexture = osgrender->getOsgObject()->getObjTexture();
 
-				//parts node
-				string str(ConstParams::DATABASEDIR);
-				const char * file = "LSCM_Newcube0.bmp";
-				str += file;
-				pObjTexture = osgCreateSoft(str.c_str());
-				LoadCheck(pObjTexture.get(), str.c_str());
+		//parts node
+		string str(ConstParams::DATABASEDIR);
+		str += filename;
+		pObjTexture = osgCreateSoft(str.c_str());
+		if(!LoadCheck(pObjTexture.get(), str.c_str()))
+		{
+			return false;
+		}
 
-				osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = new osg::PositionAttitudeTransform();
-				pObjTexturePosAtt->addChild(pObjTexture);
-				pObjTexturePosAtt->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
+		osg::ref_ptr<osg::PositionAttitudeTransform> pObjTexturePosAtt = new osg::PositionAttitudeTransform();
+		pObjTexturePosAtt->addChild(pObjTexture);
+		pObjTexturePosAtt->getOrCreateStateSet()->setRenderBinDetails(2, "RenderBin");
 
-
-				osgrender->getShadowedScene()->addChild(pObjTexture);
-				osgrender->getOsgObject()->setObjTexture(pObjTexture);
+		osgrender->getShadowedScene()->addChild(pObjTexture);
+		osgrender->getOsgObject()->setObjTexture(pObjTexture);
 
 //				osgrender->getShadowedScene()->addChild(pObjTexturePosAtt);
-				osgrender->getOsgObject()->setObjTexturePosAtt(pObjTexturePosAtt);
+		osgrender->getOsgObject()->setObjTexturePosAtt(pObjTexturePosAtt);
 //				osgrender->getOsgObject()->setSoftTexture(true);
 
-				cout << "<<Create a texture image with ocurring collision>> " << endl;
-
-				break;
-			}
-
-		}
-		//A 65 S 83 D 68 W 87 F 70 V 86
+		return true;
 	}
 
-	bool KeyboardController_client::getKey(int key)
+	void KeyboardController_client::AssignmentKeyinput(const char * settingFilename)
 	{
-		return false;
+		ostringstream setInput;
+		setInput <<  ConstParams::DATABASEDIR << settingFilename;
+
+		std::ifstream input(setInput.str().c_str());
+
+		if(!input.is_open())
+		{
+			cerr << "Setting file cannot be openned!!" << endl;
+			cerr << "Filename is " << setInput.str().c_str() << endl;
+			exit(EXIT_SUCCESS);
+		}
+
+		while(input)
+		{
+			char line[1024] ;
+			input.getline(line, 1024) ;
+			std::stringstream line_input(line) ;
+
+			pair<unsigned int, string> tmpKeyAssignment;
+
+			//first word means a value assignment
+			unsigned int value;
+			line_input >> value;
+			tmpKeyAssignment.first = value;
+
+			//second word means a name of model
+			std::string keyword;
+			line_input >> keyword;
+			tmpKeyAssignment.second = keyword;
+
+			mKeyAssignment.push_back(tmpKeyAssignment);
+		}
+
+		cout << mKeyAssignment.size() << endl;
+	}
+
+	KeyboardController_client::KeyboardController_client()
+	{
+		AssignmentKeyinput("setting.txt");
+	}
+
+	KeyboardController_client::~KeyboardController_client()
+	{
+
 	}
 }
+

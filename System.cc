@@ -270,8 +270,10 @@ namespace PTAMM {
 	/**
 	 * Destructor
 	 */
-	System::~System(void) {
-		if (mpMap != NULL) {
+	System::~System(void)
+	{
+		if (mpMap != NULL)
+		{
 			mpMap->mapLockManager.UnRegister(this);
 		}
 		// Added by Umakatsu

@@ -14,6 +14,7 @@
 #include <osg/PolygonMode>
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
+#include <osg/ref_ptr>
 
 #include <vector>
 
@@ -25,37 +26,84 @@ namespace ARMM
 		osg_Menu();
 		~osg_Menu();
 
-		std::vector<osg::Node*> getObjMenuNodeArray() const {
-			return mObjMenuNodeArray;
-		}
-
-		std::vector<osg::PositionAttitudeTransform*> getObjMenuTransformArray() const {
-			return mObjMenuTransformArray;
-		}
-
 		void PushObjMenuNodeArray(osg::Node* n);
 		void PushObjMenuTransArray(osg::PositionAttitudeTransform* t);
 
-		void setObjMenuNodeArray(std::vector<osg::Node*> objMenuNodeArray) {
+		void CreateMenuPane( void );
+		void CreateModelButtonCloud( void );
+
+	bool isMenuButtonState() const {
+		return mMenuButtonState;
+	}
+
+	void ToggleMenuButtonState() {
+		mMenuButtonState = !mMenuButtonState;
+	}
+
+	bool isModelButtonState() const {
+		return mModelButtonState;
+	}
+
+	void ToggleModelButtonState()
+	{
+		mModelButtonState = !mModelButtonState;
+	}
+
+		std::vector<osg::ref_ptr<osg::Node> > getMenuModelObjectArray() const {
+		return mMenuModelObjectArray;
+	}
+
+	void setMenuModelObjectArray(
+			std::vector<osg::ref_ptr<osg::Node> > menuModelObjectArray) {
+		mMenuModelObjectArray = menuModelObjectArray;
+	}
+
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > getMenuModelTransArray() const {
+		return mMenuModelTransArray;
+	}
+
+	void setMenuModelTransArray(
+			std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > menuModelTransArray) {
+		mMenuModelTransArray = menuModelTransArray;
+	}
+
+	std::vector<osg::ref_ptr<osg::Node> > getObjMenuNodeArray() const {
+			return mObjMenuNodeArray;
+		}
+
+		void setObjMenuNodeArray(
+				std::vector<osg::ref_ptr<osg::Node> > objMenuNodeArray) {
 			mObjMenuNodeArray = objMenuNodeArray;
 		}
 
+		std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > getObjMenuTransformArray() const {
+			return mObjMenuTransformArray;
+		}
+
 		void setObjMenuTransformArray(
-				std::vector<osg::PositionAttitudeTransform*> objMenuTransformArray) {
+				std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > objMenuTransformArray) {
 			mObjMenuTransformArray = objMenuTransformArray;
 		}
 
-		void CreateMenuPane( void );
-
 	private:
 		void CreateUnit(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0,0,0));
+		void CreateModelButton(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0,0,0));
+		void AssignmentKeyinput(const char * settingFilename);
 
 	private:
 		osg::Quat DEFAULTATTIDUTE;
 
-		std::vector<osg::Node*> mObjMenuNodeArray;
-		std::vector<osg::PositionAttitudeTransform*> mObjMenuTransformArray;
+		std::vector<osg::ref_ptr<osg::Node> > mObjMenuNodeArray;
+		std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > mObjMenuTransformArray;
 
+		//for menu button of virtual objects
+		std::vector<osg::ref_ptr<osg::Node> > mMenuModelObjectArray;
+		std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> >  mMenuModelTransArray;
+
+		std::vector<std::pair<unsigned int, std::string> > mKeyAssignment;
+
+		bool mModelButtonState;
+		bool mMenuButtonState;
 
 	};
 }

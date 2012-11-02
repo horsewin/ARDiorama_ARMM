@@ -33,6 +33,7 @@ namespace ARMM
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 			);
 
+	const
 	//---------------------------------------------------------------------------
 	// Global
 	//---------------------------------------------------------------------------
@@ -72,16 +73,15 @@ namespace ARMM
 			r = new RegistrationOPIRAMT(new OCVSurf());
 			osg::Group* lightGroup = new osg::Group;
 			// Create a local light.
-			light = new osg::Light;
+			light = new osg::Light();
 			light->setLightNum(0);
-			light->setPosition(osg::Vec4(30.0f, -5.0f, 5.0, 0.0f));
-			light->setAmbient(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-			light->setDiffuse(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
-			light->setSpecular(osg::Vec4(0.7f,0.7f,0.7f,1.0f));
-			light->setConstantAttenuation(1.f);
-			light->setLinearAttenuation(1.f);
-			light->setQuadraticAttenuation(0.f);
-
+			light->setAmbient(osg::Vec4(0.4f,0.4f,0.4f,1.0f));
+			light->setDiffuse(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			light->setSpecular(osg::Vec4(0.4f,0.4f,0.4f,1.0f));
+			light->setConstantAttenuation(0.2f);
+			light->setLinearAttenuation(0.05f);
+			light->setQuadraticAttenuation(0.05f);
+			light->setPosition(osg::Vec4(30, -5, 5, 0.0));
 
 			osg::LightSource* lightSource = new osg::LightSource;
 			lightSource->setLight(light);
@@ -89,8 +89,7 @@ namespace ARMM
 			lightSource->setStateSetModes(*this->getOrCreateStateSet(), osg::StateAttribute::ON);
 			lightGroup->addChild(lightSource);
 
-	//		this->addChild(lightGroup);
-		}
+			this->addChild(lightGroup);		}
 
 		osg::Light *getLight()
 		{
@@ -203,6 +202,7 @@ namespace ARMM
 		mOsgMenu	= boost::shared_ptr<osg_Menu>(new osg_Menu());
 
 		//setting shadow mask
+		invisibleMask		= 0x0;
 		rcvShadowMask		= 0x1;
 		castShadowMask	= 0x2;
 
@@ -252,6 +252,7 @@ namespace ARMM
 		osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 		geode->addDrawable(geom.get());
 		bgCamera->addChild(geode.get());
+		bgCamera->setNodeMask(rcvShadowMask);
 		root->addChild(bgCamera.get());
 
 		// ----------------------------------------------------------------
@@ -323,7 +324,7 @@ namespace ARMM
 			}
 			wheel_tmp_trans1.at(i)->setPosition(osg::Vec3d(0.0, 0.0, 0.0));
 			wheel_transform[0].push_back(new osg::PositionAttitudeTransform);
-			wheel_transform[0].at(i)->setNodeMask(rcvShadowMask | castShadowMask );
+			wheel_transform[0].at(i)->setNodeMask(castShadowMask );
 			wheel_transform[0].at(i)->addChild(wheel_tmp_trans1.at(i));
 		}
 
@@ -365,47 +366,37 @@ namespace ARMM
 		car_transform.push_back(new osg::PositionAttitudeTransform());
 		car_transform.at(0)->setAttitude(osg::Quat(0,0,0,1));
 		car_transform.at(0)->addChild(car_trans1.get());
-		car_transform.at(0)->setNodeMask(castShadowMask | rcvShadowMask);
+		car_transform.at(0)->setNodeMask(castShadowMask);
 		//car_transform.at(0)->setNodeMask(rcvShadowMask );
 
 		car_transform.push_back(new osg::PositionAttitudeTransform());
 		car_transform.at(1)->setAttitude(osg::Quat(0,0,0,1));
 		car_transform.at(1)->addChild(car_trans2.get());
-		car_transform.at(1)->setNodeMask(castShadowMask | rcvShadowMask);
+		car_transform.at(1)->setNodeMask(castShadowMask);
 		//car_transform.at(1)->setNodeMask(rcvShadowMask );
 
 	#endif /* CAR_SIMULATION == 1 */
 
-//		// Set shadow node
-//	//V	osg::ref_ptr<osgShadow::ShadowTexture> sm = new osgShadow::ShadowTexture;
-//		osg::ref_ptr<osgShadow::MyShadowMap> sm = new osgShadow::MyShadowMap; //Adrian
-//		sm->setTextureSize( osg::Vec2s(1024, 1024) ); //Adrian
-//		sm->setTextureUnit( 1 );
-		//Another shadow node
-		osg::ref_ptr<osg::Light> light = new osg::Light;
-		light->setLightNum(0);
-		light->setPosition(osg::Vec4( .0f,  .0f,  .0f, 1.0f));
-		light->setAmbient( osg::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		light->setDiffuse( osg::Vec4(0.8f, 0.8f, 0.8f, 1.0f));
-
-		osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
-		lightSource->setLight(light);
-
-		osg::ref_ptr<osg::MatrixTransform> sourceTrans = new osg::MatrixTransform;
-		sourceTrans->setMatrix( osg::Matrix::translate(osg::Vec3(200.0, -50.0, 100.0)));
-		sourceTrans->addChild(lightSource.get());
-
-		osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
-		sm->setLight(lightSource.get());
+		// Set shadow node
+		//osg::ref_ptr<osgShadow::ShadowTexture> sm = new osgShadow::ShadowTexture; //V
+		//osg::ref_ptr<osgShadow::MyShadowMap> sm = new osgShadow::MyShadowMap; //Adrian
+		osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap; //Atsushi
+		//sm->setLight(arTrackedNode->getLight()); //Atsushi
 		sm->setTextureSize( osg::Vec2s(1024, 1024) ); //Adrian
 		sm->setTextureUnit( 1 );
-
 
 		shadowedScene = new osgShadow::ShadowedScene;
 		shadowedScene->setShadowTechnique( sm.get() );
 		shadowedScene->setReceivesShadowTraversalMask( rcvShadowMask );
 		shadowedScene->setCastsShadowTraversalMask( castShadowMask );
 		shadowedScene->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON); //Adrian
+
+		osg::ref_ptr<osg::LightSource> source = new osg::LightSource; //V
+		source->getLight()->setPosition( osg::Vec4(4.0, 8.0, 10.0, 0.0) ); //V
+		source->getLight()->setAmbient( osg::Vec4(0.1, 0.1, 0.1, 1.0) ); //V
+		source->getLight()->setDiffuse( osg::Vec4(0.9, 0.9, 0.9, 1.0) ); //V
+		shadowedScene->addChild(source);
+
 
 	#if CAR_SIMULATION == 1
 		shadowedScene->addChild( car_transform.at(0) );
@@ -438,8 +429,8 @@ namespace ARMM
 			//osg::Vec4Array* col = new osg::Vec4Array();
 			HeightFieldGeometry_quad->setColorArray(groundQuadColor);
 			HeightFieldGeometry_line->setColorArray(groundLineColor);
-			groundQuadColor->push_back(osg::Vec4(1,1,1,.0));
-			groundLineColor->push_back(osg::Vec4(1,1,1,.0));
+			groundQuadColor->push_back(osg::Vec4(1,1,1,0.3));
+			groundLineColor->push_back(osg::Vec4(1,0.2,0,0.0));
 
 			//Create the containing geode
 			osg::ref_ptr< osg::Geode > geode = new osg::Geode();
@@ -483,8 +474,6 @@ namespace ARMM
 	/*Adrian*/
 
 		//Added by Atsushi
-		shadowedScene->getOrCreateStateSet()->setMode( GL_LIGHT0, osg::StateAttribute::ON );
-		shadowedScene->addChild(sourceTrans.get());
 		// TODO this value depends on the state of Kinect Calibration
 		REP(i,ConstParams::MAX_NUM_HANDS)
 		{
@@ -497,30 +486,59 @@ namespace ARMM
 	{
 		mOsgMenu->CreateMenuPane();
 
-		std::vector<osg::PositionAttitudeTransform*> pTransArray = mOsgMenu->getObjMenuTransformArray();
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pTransArray = mOsgMenu->getObjMenuTransformArray();
 
 		//add menu object into the AR scene
 		osg::ref_ptr<osg::Group> menu = new osg::Group;
 		REP(idx, pTransArray.size())
 		{
-			pTransArray.at(idx)->setNodeMask(castShadowMask );
+			pTransArray.at(idx)->setNodeMask(castShadowMask);
 			menu->addChild(pTransArray.at(idx));
 		}
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> menuTrans = new osg::PositionAttitudeTransform;
-		const osg::Vec3d pos(250, -200, 10);
-		const osg::Quat attitude = osg::Quat(
-				osg::DegreesToRadians(-90.f), osg::Vec3d(1.0, 0.0, 0.0),
+		const osg::Vec3d BASEPOSITION(0,0,0);
+		const osg::Quat BASEATTITUDE = osg::Quat(
+				osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
 				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
 				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 		);
-		menuTrans->setAttitude(attitude);
-		menuTrans->setPosition(pos);
+		menuTrans->setAttitude(BASEATTITUDE);
+		menuTrans->setPosition(BASEPOSITION);
 		menuTrans->addChild(menu.get());
 
 		shadowedScene->addChild(menuTrans.get());
 
 		mOsgMenu->setObjMenuTransformArray(pTransArray);
+	}
+
+	void osg_Client::OsgInitModelButton()
+	{
+		mOsgMenu->CreateModelButtonCloud();
+
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pTransArray = mOsgMenu->getMenuModelTransArray();
+		//add menu object into the AR scene
+		osg::ref_ptr<osg::Group> menu = new osg::Group;
+		REP(idx, pTransArray.size())
+		{
+			pTransArray.at(idx)->setNodeMask(castShadowMask);
+			menu->addChild(pTransArray.at(idx));
+		}
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> menuTrans = new osg::PositionAttitudeTransform;
+		const osg::Vec3d BASEPOSITION(0,0,0);
+		const osg::Quat BASEATTITUDE = osg::Quat(
+				osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
+				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
+				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
+		);
+		menuTrans->setAttitude(BASEATTITUDE);
+		menuTrans->setPosition(BASEPOSITION);
+		menuTrans->addChild(menu.get());
+
+		shadowedScene->addChild(menuTrans.get());
+
+		mOsgMenu->setMenuModelTransArray(pTransArray);
 	}
 
 	void osg_Client::osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort)
@@ -548,13 +566,16 @@ namespace ARMM
 			osg_UpdateSoftTexture();
 		}
 
-		if (!viewer.done()) {
+		if (!viewer.done())
+		{
 			if (CAPTURE_SIZE.width != REGISTRATION_SIZE.width || CAPTURE_SIZE.height != REGISTRATION_SIZE.height) {
 				double scale = double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width);
 				IplImage *scaledImage = cvCreateImage(cvSize(newFrame->width*scale, newFrame->height*scale), newFrame->depth, newFrame->nChannels); cvResize(newFrame, scaledImage);
 				arTrackedNode->processFrame(scaledImage, cParams, cDistort);
 				cvReleaseImage(&scaledImage);
-			} else {
+			}
+			else
+			{
 				arTrackedNode->processFrame(newFrame, cParams, cDistort);
 			}
 			viewer.frame();
@@ -712,8 +733,8 @@ namespace ARMM
 	void osg_Client::osg_createHand(int index, float world_scale, float ratio)
 	{
 		//for virtual hands
-		const osg::Vec4 HANDSPHERECOLOR = osg::Vec4(1.0, 1.0, 0, 1.0);
-		const osg::Vec4 HANDSPHERECOLLIDECOL = osg::Vec4(1.0, 1.0, 1.0, 1.0);
+		const osg::Vec4 HANDSPHERECOLOR =		osg::Vec4(0.9451, 0.7333, 0.5765, 0.5);
+		const osg::Vec4 HANDSPHERECOLLIDECOL =	osg::Vec4(1.0, 1.0, 1.0, 1.0);
 
 		float sphere_size = world_scale * ratio;
 		//sphere_size = 0.984286;
@@ -721,8 +742,10 @@ namespace ARMM
 		cout << "Sphere size = " << world_scale*ratio << endl;
 		hand_object_global_array.push_back(new osg::PositionAttitudeTransform());
 
-		for(int i = 0; i < ConstParams::MIN_HAND_PIX; i++) {
-			for(int j = 0; j < ConstParams::MIN_HAND_PIX; j++) {
+		for(int i = 0; i < ConstParams::MIN_HAND_PIX; i++)
+		{
+			for(int j = 0; j < ConstParams::MIN_HAND_PIX; j++)
+			{
 				//create a part of hands
 				osg::ref_ptr< osg::Sphere > sphere = new osg::Sphere(osg::Vec3d(0,0,0), sphere_size);
 				osg::ref_ptr< osg::ShapeDrawable > shape = new osg::ShapeDrawable( sphere.get() );
@@ -740,11 +763,12 @@ namespace ARMM
 
 				//set hand's attributes
 				hand_object_transform_array[index].at(curr)->setScale(osg::Vec3d(scale,scale,scale));
-				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(j*scale, i*scale, 1*scale));
+				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(j*scale, i*scale, -10*scale));
 
 				// set a created hand to the graphics tree
 				hand_object_transform_array[index].at(curr)->addChild( geode.get() );
 				hand_object_global_array.at(index)->addChild( hand_object_transform_array[index].at(curr));
+				hand_object_transform_array[index].at(curr)->setNodeMask(rcvShadowMask);
 			}
 		}
 		hand_object_global_array.at(index)->setPosition(osg::Vec3d(0,0,0));
@@ -777,7 +801,7 @@ namespace ARMM
 				else
 				{
 	//				hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(0,0,100));
-					hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, 500*scale));
+					hand_object_transform_array[index].at(curr)->setPosition(osg::Vec3d(x[curr]*scale, y[curr]*scale, -500*scale));
 				}
 			}
 		}
@@ -833,6 +857,57 @@ namespace ARMM
 		osgUtil::SmoothingVisitor smooth;
 		smooth.smooth( *geom );
 		geom->getNormalArray()->dirty();
+	}
+
+
+	void osg_Client::ToggleMenuVisibility()
+	{
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pMenuTransArray  = mOsgMenu->getObjMenuTransformArray();
+
+		REP(idx, pMenuTransArray.size())
+		{
+			if(pMenuTransArray.at(idx)->getNodeMask() == castShadowMask)
+			{
+				pMenuTransArray.at(idx)->setNodeMask(invisibleMask);
+			}
+			else
+			{
+				pMenuTransArray.at(idx)->setNodeMask(castShadowMask);
+			}
+		}
+
+		mOsgMenu->setObjMenuTransformArray(pMenuTransArray);
+		mOsgMenu->ToggleMenuButtonState();
+	}
+
+	void osg_Client::ToggleModelButtonVisibility()
+	{
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pModelTransArray = mOsgMenu->getMenuModelTransArray();
+
+		REP(idx, pModelTransArray.size())
+		{
+			if(pModelTransArray.at(idx)->getNodeMask() == castShadowMask)
+			{
+				pModelTransArray.at(idx)->setNodeMask(invisibleMask);
+			}
+			else
+			{
+				pModelTransArray.at(idx)->setNodeMask(castShadowMask);
+			}
+		}
+
+		mOsgMenu->setMenuModelTransArray(pModelTransArray);
+		mOsgMenu->ToggleModelButtonState();
+	}
+
+	bool osg_Client::IsMenuVisibiilty()
+	{
+		return mOsgMenu->isMenuButtonState();
+	}
+
+	bool osg_Client::IsModelButtonVisibiilty()
+	{
+		return mOsgMenu->isModelButtonState();
 	}
 
 }

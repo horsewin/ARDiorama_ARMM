@@ -41,11 +41,13 @@
 
 namespace
 {
-	inline void LoadCheck(void * ptr, const char * filename)
+	inline bool LoadCheck(void * ptr, const char * filename)
 	{
 		if( ptr == NULL){
 			std::cerr << "Error : No such file in the directory or incorrect path.  " << filename << std::endl;
+			return false;
 		}
+		return true;
 	}
 }
 
@@ -66,6 +68,7 @@ namespace ARMM
 			void osg_init(double *projMatrix);
 			void osg_inittracker(std::string markerName, int maxLengthSize, int maxLengthScale);
 			void OsgInitMenu();
+			void OsgInitModelButton();
 			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort);
 			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort, std::vector <osg::Quat> q_array,std::vector <osg::Vec3d>  v_array);
 			void osg_uninit();
@@ -90,11 +93,17 @@ namespace ARMM
 				return shadowedScene;
 			}
 
+			void ToggleMenuVisibility();
+			void ToggleModelButtonVisibility();
+			bool IsMenuVisibiilty();
+			bool IsModelButtonVisibiilty();
+
 		private:
 			//Shadowing Stuff
 			osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene;
 			uint rcvShadowMask;
 			uint castShadowMask;
+			uint invisibleMask;
 
 			boost::shared_ptr<osg_Object>mOsgObject;
 			boost::shared_ptr<osg_Menu>mOsgMenu;

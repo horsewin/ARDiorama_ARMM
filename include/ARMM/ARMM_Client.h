@@ -122,9 +122,6 @@ namespace ARMM
 		#else
 		Capture *mCapture;
 		#endif
-
-		std::string mSrcFile;
-		std::string mDstFile;
 	};
 
 	#ifdef USE_CLIENT_SENDER
