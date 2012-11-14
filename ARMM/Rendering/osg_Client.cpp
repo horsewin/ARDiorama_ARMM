@@ -266,6 +266,10 @@ namespace ARMM
 		root->addChild(fgCamera.get());
 		arTrackedNode = new ARTrackedNode();
 		fgCamera->addChild(arTrackedNode.get());
+
+		//for AR menu button animation
+		gAddModelAnimation = 0.0;
+		ResetModelButtonPos();
 	};
 
 
@@ -285,9 +289,7 @@ namespace ARMM
 
 	#if CAR_SIMULATION == 1
 		string file(ConstParams::DATABASEDIR);
-		file+= "Newapple.3ds";
 		osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(ConstParams::CAR1_BODY_FILENAME);
-	//	osg::ref_ptr<osg::Node> car1 = osgDB::readNodeFile(file.c_str());
 		LoadCheck(car1.get(), ConstParams::CAR1_BODY_FILENAME);
 		osg::ref_ptr<osg::PositionAttitudeTransform> car_trans1 = new osg::PositionAttitudeTransform();
 		car_trans1->setAttitude(osg::Quat(
@@ -296,15 +298,6 @@ namespace ARMM
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
 			));
 		car_trans1->setPosition(osg::Vec3d(0.0, 0.0, 3.0));//shift body higher 3 units
-
-		//Addition node to Tree
-		//test to apply a Geode object for a Node object
-
-	//	double scale = 180.1812; //サーバ側の値から決定した
-	//	double scale = 300; //サーバ側の値から決定した
-	//	car_trans1->setScale(osg::Vec3d(scale,scale,scale));
-	//	car_trans1->addChild(osg3DSFileFromDiorama("ARMM/Data/Keyboard/keyboard.3ds", "ARMM/Data/Keyboard/"));
-	//	car_trans1->addChild(createCube());
 		car_trans1->addChild(car1.get()); // car version
 
 		osg::ref_ptr<osg::Node> wheel1 = osgDB::readNodeFile(ConstParams::CAR1_WHEEL_FILENAME);
@@ -330,7 +323,6 @@ namespace ARMM
 
 		//begin car 2
 		osg::ref_ptr<osg::Node > car2 = osgDB::readNodeFile(ConstParams::CAR2_BODY_FILENAME);
-	//	osg::ref_ptr<osg::Node > car2 = osgDB::readNodeFile(file);
 		LoadCheck(car2.get(), ConstParams::CAR2_BODY_FILENAME);
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> car_trans2 = new osg::PositionAttitudeTransform();
@@ -346,13 +338,17 @@ namespace ARMM
 		std::vector<osg::PositionAttitudeTransform*> wheel_tmp_trans2;
 		LoadCheck(wheel2.get(), ConstParams::CAR2_WHEEL_FILENAME);
 
-		for(int i = 0 ; i < 4; i++)  {
+		for(int i = 0 ; i < 4; i++)
+		{
 			wheel_tmp_trans2.push_back(new osg::PositionAttitudeTransform);
 			wheel_tmp_trans2.at(i)->addChild(wheel2.get());
-			if(i == 0 || i == 3) {
+			if(i == 0 || i == 3)
+			{
 				wheel_tmp_trans2.at(i)->setAttitude(osg::Quat(osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
 				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0), osg::DegreesToRadians(180.f), osg::Vec3d(0.0, 0.0, 1.0)));
-			} else {
+			}
+			else
+			{
 				wheel_tmp_trans2.at(i)->setAttitude(osg::Quat(osg::DegreesToRadians(0.f), osg::Vec3d(1.0, 0.0, 0.0),
 				osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0), osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)));
 			}
@@ -539,11 +535,24 @@ namespace ARMM
 		shadowedScene->addChild(menuTrans.get());
 
 		mOsgMenu->setMenuModelTransArray(pTransArray);
+
+		//change the condition of regular state if lists of models is shown in AR space into invisible condition
+		if(IsModelButtonVisibiilty())
+		{
+			ToggleModelButtonVisibility();
+		}
+
 	}
 
 	void osg_Client::osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort)
 	{
 		assert( newFrame != NULL);
+
+		if(gAddModelAnimation >0.001 || gAddModelAnimation < -0.001) //means "!= 0.0"
+		{
+			ModelButtonAnimation();
+		}
+
 		cvResize(newFrame, mGLImage);
 		cvCvtColor(mGLImage, mGLImage, CV_BGR2RGB);
 		mVideoImage->setImage(mGLImage->width, mGLImage->height, 0, 3, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)mGLImage->imageData, osg::Image::NO_DELETE);
@@ -585,6 +594,12 @@ namespace ARMM
 	void osg_Client::osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort, std::vector <osg::Quat> q_array,std::vector <osg::Vec3d>  v_array)
 	{
 		assert( newFrame != NULL);
+
+		if(gAddModelAnimation >0.001 || gAddModelAnimation < -0.001) //means "!= 0.0"
+		{
+			ModelButtonAnimation();
+		}
+
 		cvResize(newFrame, mGLImage);
 		cvCvtColor(mGLImage, mGLImage, CV_BGR2RGB);
 		mVideoImage->setImage(mGLImage->width, mGLImage->height, 0, 3, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)mGLImage->imageData, osg::Image::NO_DELETE);
@@ -864,11 +879,15 @@ namespace ARMM
 	{
 		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pMenuTransArray  = mOsgMenu->getObjMenuTransformArray();
 
+		double shiftVal = 1;
 		REP(idx, pMenuTransArray.size())
 		{
 			if(pMenuTransArray.at(idx)->getNodeMask() == castShadowMask)
 			{
 				pMenuTransArray.at(idx)->setNodeMask(invisibleMask);
+
+				//appear ar model buttons
+				gAddModelAnimation = shiftVal;
 			}
 			else
 			{
@@ -900,6 +919,18 @@ namespace ARMM
 		mOsgMenu->ToggleModelButtonState();
 	}
 
+	void osg_Client::ToggleVirtualObjVisibility()
+	{
+		std::vector<osg::PositionAttitudeTransform*> pTransArray = mOsgObject->getObjTransformArray();
+
+		REP(i,pTransArray.size())
+		{
+			unsigned int mask = pTransArray.at(i)->getNodeMask() ^ (castShadowMask);
+			pTransArray.at(i)->setNodeMask(mask);
+		}
+		mOsgObject->setObjTransformArray(pTransArray);
+	}
+
 	bool osg_Client::IsMenuVisibiilty()
 	{
 		return mOsgMenu->isMenuButtonState();
@@ -910,4 +941,59 @@ namespace ARMM
 		return mOsgMenu->isModelButtonState();
 	}
 
+	void osg_Client::ResetAllNodes()
+	{
+		mOsgObject->getObjNodeArray().clear();
+		mOsgObject->getObjTransformArray().clear();
+	}
+
+	void osg_Client::ModelButtonAnimation()
+	{
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pModelTransArray = mOsgMenu->getMenuModelTransArray();
+
+		//check if valid models are found?
+		if(pModelTransArray.empty())
+		{
+			cerr << "No model button is found in osg.h" << endl;
+			return;
+		}
+
+		//set the action in current frame
+		double posZ = pModelTransArray.at(0)->getPosition().z();
+		const double zThreshold = 2.0;
+		cout << posZ << endl;
+		if(posZ > zThreshold)
+		{
+			gAddModelAnimation = 0;
+			return;
+		}
+
+		//set the pos of each model in current frame
+		REP(idx, pModelTransArray.size())
+		{
+			osg::Vec3 newPos = pModelTransArray.at(idx)->getPosition();
+			newPos.set(newPos.x(), newPos.y(), newPos.z() + gAddModelAnimation);
+			pModelTransArray.at(idx)->setPosition(newPos);
+		}
+
+	}
+
+	void osg_Client::ResetModelButtonPos()
+	{
+		std::vector< osg::ref_ptr<osg::PositionAttitudeTransform> > pModelTransArray = mOsgMenu->getMenuModelTransArray();
+
+		if(pModelTransArray.empty())
+		{
+			cerr << "No model button is found in osg.h" << endl;
+			return;
+		}
+
+		REP(idx, pModelTransArray.size())
+		{
+			osg::Vec3 newPos = pModelTransArray.at(idx)->getPosition();
+			newPos.set(newPos.x(), newPos.y(), mOsgMenu->GetInitPosZ());
+			pModelTransArray.at(idx)->setPosition(newPos);
+		}
+
+	}
 }

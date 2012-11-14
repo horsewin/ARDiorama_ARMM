@@ -79,13 +79,65 @@ namespace ARMM
 				break;
 			}
 
-			//adding a virtual object into the AR environment
 			default:
+				//adding a virtual object into the AR environment
 				if( key > 78 && (key - offset) < static_cast<int>(mKeyAssignment.size()) )
 				{
 					if(!RegisteringObject(mKeyAssignment.at(key-offset).second.c_str(), osgrender))
 					{
 						cerr << "Error: register object into rendering components" << endl;
+					}
+
+					//初期設定はinvisibleにする
+					osgrender->getOsgObject()->getObjTransformArray().back()->setNodeMask(0);
+
+					#if USE_OSGMENU == 1
+					osgrender->ToggleMenuVisibility();
+					osgrender->ToggleModelButtonVisibility();
+					osgrender->ToggleVirtualObjVisibility();
+					osgrender->ResetModelButtonPos();
+					#endif
+				}
+				//button input
+				else if( key > 200 && key < 300)
+				{
+					if(key == ConstParams::ADDMODELBUTTON)
+					{
+						//rendering list of models
+						//rendering new button for cancal action
+						osgrender->ToggleModelButtonVisibility();
+
+						//disappearing all buttons and virtual objects temporary
+						osgrender->ToggleMenuVisibility();
+						osgrender->ToggleVirtualObjVisibility();
+					}
+					else if(key == ConstParams::RESETBUTTON)
+					{
+						osgrender->ResetAllNodes();
+					}
+					else if(key == ConstParams::STARTTRANSBUTTON)
+					{
+						//Either source or destination model are not found
+						if( osgrender->getOsgObject()->getObjNodeArray().size() < 2)
+						{
+							cerr << "No enough model is found : need two at least" << endl;
+						}
+						//having two models at least in AR env
+						else
+						{
+							osgrender->ToggleMenuVisibility();	//menu should be disappeared
+						}
+					}
+				}
+				//model button input
+				else if( key > 300 && key < 400)
+				{
+					if( key == ConstParams::CANCELMODELBUTTON)
+					{
+						osgrender->ToggleMenuVisibility();
+						osgrender->ToggleModelButtonVisibility();
+						osgrender->ToggleVirtualObjVisibility();
+						osgrender->ResetModelButtonPos();
 					}
 				}
 				break;
@@ -130,7 +182,6 @@ namespace ARMM
 //				const char * FILENAME = "keyboard";
 //				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
 		osgrender->osgAddObjectNode(obj.get(), scale);
-
 		return true;
 	}
 

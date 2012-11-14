@@ -43,4 +43,9 @@ namespace ARMM
 	//for virtual objects
 	const int MAX_NUM_VIR_OBJ = 5;
 
+	//for AR menu
+	const int ConstParams::ADDMODELBUTTON		= 201;
+	const int ConstParams::RESETBUTTON			= 202;
+	const int ConstParams::STARTTRANSBUTTON	= 203;
+	const int ConstParams::CANCELMODELBUTTON	= 301;
 }

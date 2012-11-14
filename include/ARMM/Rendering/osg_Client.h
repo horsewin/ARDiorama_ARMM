@@ -95,8 +95,12 @@ namespace ARMM
 
 			void ToggleMenuVisibility();
 			void ToggleModelButtonVisibility();
+			void ToggleVirtualObjVisibility();
 			bool IsMenuVisibiilty();
 			bool IsModelButtonVisibiilty();
+			void ResetAllNodes();
+			void ModelButtonAnimation();
+			void ResetModelButtonPos();
 
 		private:
 			//Shadowing Stuff
@@ -107,6 +111,8 @@ namespace ARMM
 
 			boost::shared_ptr<osg_Object>mOsgObject;
 			boost::shared_ptr<osg_Menu>mOsgMenu;
+
+			double gAddModelAnimation;
 	};
 }
 #endif

@@ -32,7 +32,7 @@ namespace
 namespace ARMM
 {
 	osg_Menu::osg_Menu()
-	: mModelButtonState(true), mMenuButtonState(true)
+	: mModelButtonState(true), mMenuButtonState(true), mInitPosZ(-40.0)
 	{
 		mObjMenuNodeArray.clear();
 		mObjMenuTransformArray.clear();
@@ -68,16 +68,19 @@ namespace ARMM
 	void osg_Menu::CreateMenuPane()
 	{
 		//register some components
+		//the developer should set parameters about keyboard input in constant.cpp
 		CreateUnit("Controller.3ds", osg::Vec3d( 25, 0, 80));
-		CreateUnit("SphereButton.3ds");
-		CreateUnit("car1.3ds", osg::Vec3d(-25, 0, 0));
-		CreateUnit("car2.3ds", osg::Vec3d(-50, 0, 0));
-		CreateUnit("ScaleButton.3ds", osg::Vec3d(0, 0, 30));
-		CreateUnit("ScaleButton2.3ds", osg::Vec3d(-25, 0, 30));
+		CreateUnit("model.3ds", osg::Vec3d(25, 0, 0));			//keyboard input = 201
+		CreateUnit("reset.3ds", osg::Vec3d(25, 0, 30));			//keyboard input = 202
+		CreateUnit("StartTransfer.3ds", osg::Vec3d(25, 0, 60));	//keyboard input = 203
+		//CreateUnit("SphereButton.3ds");
+		//CreateUnit("car1.3ds", osg::Vec3d(-25, 0, 0));
+		//CreateUnit("car2.3ds", osg::Vec3d(-50, 0, 0));
+		//CreateUnit("ScaleButton.3ds", osg::Vec3d(0, 0, 30));
+		//CreateUnit("ScaleButton2.3ds", osg::Vec3d(-25, 0, 30));
 		CreateUnit("RollButton.3ds", osg::Vec3d(0, 0, 60));
-		CreateUnit("PitchButton.3ds", osg::Vec3d(-25, 0, 60));
-		CreateUnit("YawButton.3ds", osg::Vec3d(-50, 0, 60));
-		CreateUnit("model.3ds", osg::Vec3d(25, 0, 0));
+		//CreateUnit("PitchButton.3ds", osg::Vec3d(-25, 0, 60));
+		//CreateUnit("YawButton.3ds", osg::Vec3d(-50, 0, 60));
 	}
 
 	void osg_Menu::CreateModelButtonCloud( void )
@@ -90,11 +93,19 @@ namespace ARMM
 		int id=0;
 		for(;id<modelSize; id++)
 		{
-			std::cout << id << std::endl;
-			CreateModelButton( mKeyAssignment.at(id).second.c_str(), osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, -40));
+			CreateModelButton( mKeyAssignment.at(id).second.c_str(), osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, mInitPosZ));
 		}
-		std::cout << id << std::endl;
-		CreateModelButton("cancel", osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, -40));
+		CreateModelButton("cancel", osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, mInitPosZ));
+	}
+
+	unsigned int osg_Menu::GetKeyAssignment(const unsigned int & idx) const
+	{
+		if( mKeyAssignment.size() <= idx)
+		{
+			std::cerr << "Error: you designed the number out of range in key assignment" << std::endl;
+			return 0;
+		}
+		return mKeyAssignment.at(idx).first;
 	}
 
 	void osg_Menu::AssignmentKeyinput(const char * settingFilename)
@@ -106,7 +117,7 @@ namespace ARMM
 
 		if(!input.is_open())
 		{
-			std::cerr << "Setting file cannot be openned!!" << std::endl;
+			std::cerr << "Setting file cannot be opened!!" << std::endl;
 			std::cerr << "Filename is " << setInput.str().c_str() << std::endl;
 			exit(EXIT_SUCCESS);
 		}
@@ -148,7 +159,6 @@ namespace ARMM
 		str += buttonfilename;
 		osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(str.c_str());
 		LoadCheck(node.get(), str.c_str());
-
 		node->setName(str.c_str());
 		mObjMenuNodeArray.push_back(node);
 

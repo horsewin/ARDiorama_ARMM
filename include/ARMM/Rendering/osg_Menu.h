@@ -36,7 +36,8 @@ namespace ARMM
 		return mMenuButtonState;
 	}
 
-	void ToggleMenuButtonState() {
+	void ToggleMenuButtonState()
+	{
 		mMenuButtonState = !mMenuButtonState;
 	}
 
@@ -85,6 +86,12 @@ namespace ARMM
 			mObjMenuTransformArray = objMenuTransformArray;
 		}
 
+		double GetInitPosZ() const {
+			return mInitPosZ;
+		}
+
+		unsigned int GetKeyAssignment(const unsigned int & idx) const;
+
 	private:
 		void CreateUnit(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0,0,0));
 		void CreateModelButton(const char * buttonfilename, osg::Vec3d pos = osg::Vec3d(0,0,0));
@@ -100,10 +107,12 @@ namespace ARMM
 		std::vector<osg::ref_ptr<osg::Node> > mMenuModelObjectArray;
 		std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> >  mMenuModelTransArray;
 
-		std::vector<std::pair<unsigned int, std::string> > mKeyAssignment;
+		std::vector<std::pair<unsigned int, std::string> > mKeyAssignment; //first: model ID used in network, second: model name
 
 		bool mModelButtonState;
 		bool mMenuButtonState;
+
+		double mInitPosZ;
 
 	};
 }

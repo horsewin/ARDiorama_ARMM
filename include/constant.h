@@ -83,6 +83,12 @@ namespace ARMM
 
 		//for soft texture
 		enum{resX=12, resY=9};
+
+		//for AR Menu
+		static const int ADDMODELBUTTON;
+		static const int RESETBUTTON;
+		static const int STARTTRANSBUTTON;
+		static const int CANCELMODELBUTTON;
 	};
 }
 #endif

@@ -534,12 +534,11 @@ namespace ARMM
 		IplImage *arImage = mCapture->getFrame();
 		RenderScene(arImage, mCapture);
 		cvReleaseImage(&arImage);
-
-		//change the condition of regular state if lists of models is shown in AR space into invisible condition
-		if(mOsgRender->IsModelButtonVisibiilty())
-		{
-			mOsgRender->ToggleModelButtonVisibility();
-		}
+		//		//change the condition of regular state if lists of models is shown in AR space into invisible condition
+		//		if(mOsgRender->IsModelButtonVisibiilty())
+		//		{
+		//			mOsgRender->ToggleModelButtonVisibility();
+		//		}
 
 #ifdef USE_CLIENT_SENDER
 		ARMM_client_sender->SetPasskey( mKC->check_input() );
@@ -547,7 +546,9 @@ namespace ARMM
 			ARMM_client_sender->mainloop();
 		}
 #else
-		if( m_pass != 0){
+		if( m_pass != 0)
+		{
+			cout << m_pass << endl;
 			mKC->set_input(m_pass, mOsgRender);
 			m_pass = 0;
 		}
