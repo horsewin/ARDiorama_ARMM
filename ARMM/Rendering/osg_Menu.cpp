@@ -68,7 +68,6 @@ namespace ARMM
 	void osg_Menu::CreateMenuPane()
 	{
 		//register some components
-		//the developer should set parameters about keyboard input in constant.cpp
 		CreateUnit("Controller.3ds", osg::Vec3d( 25, 0, 80));
 		CreateUnit("model.3ds", osg::Vec3d(25, 0, 0));			//keyboard input = 201
 		CreateUnit("reset.3ds", osg::Vec3d(25, 0, 30));			//keyboard input = 202
@@ -78,7 +77,7 @@ namespace ARMM
 		//CreateUnit("car2.3ds", osg::Vec3d(-50, 0, 0));
 		//CreateUnit("ScaleButton.3ds", osg::Vec3d(0, 0, 30));
 		//CreateUnit("ScaleButton2.3ds", osg::Vec3d(-25, 0, 30));
-		CreateUnit("RollButton.3ds", osg::Vec3d(0, 0, 60));
+		//CreateUnit("RollButton.3ds", osg::Vec3d(0, 0, 60));
 		//CreateUnit("PitchButton.3ds", osg::Vec3d(-25, 0, 60));
 		//CreateUnit("YawButton.3ds", osg::Vec3d(-50, 0, 60));
 	}
@@ -95,7 +94,7 @@ namespace ARMM
 		{
 			CreateModelButton( mKeyAssignment.at(id).second.c_str(), osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, mInitPosZ));
 		}
-		CreateModelButton("cancel", osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, mInitPosZ));
+		CreateModelButton("cancel", osg::Vec3(0, -250, mInitPosZ));
 	}
 
 	unsigned int osg_Menu::GetKeyAssignment(const unsigned int & idx) const
@@ -147,7 +146,7 @@ namespace ARMM
 
 	void osg_Menu::CreateUnit(const char * buttonfilename, osg::Vec3d pos)
 	{
-		const osg::Vec3d UNITBASEPOSITION(250, -200, 10);
+		const osg::Vec3d UNITBASEPOSITION(50, -200, 10);
 		const osg::Quat UNITATTITUDE = osg::Quat(
 			osg::DegreesToRadians(-90.f), osg::Vec3d(1.0, 0.0, 0.0),
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
@@ -159,6 +158,7 @@ namespace ARMM
 		str += buttonfilename;
 		osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(str.c_str());
 		LoadCheck(node.get(), str.c_str());
+
 		node->setName(str.c_str());
 		mObjMenuNodeArray.push_back(node);
 

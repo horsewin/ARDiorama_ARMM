@@ -21,8 +21,9 @@ namespace ARMM {
 		bool loadedParams = false;
 		//If we're using the parameter files load them
 		if (parametersFile && strlen(parametersFile) > 0)
+		{
 			loadedParams = loadCaptureParams(parametersFile);
-
+		}
 //		SetImageSize(mVideoSource->Size());
 
 		//	params.width  = mVideoSource.Size()[0];

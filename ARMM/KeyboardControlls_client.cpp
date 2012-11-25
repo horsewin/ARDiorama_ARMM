@@ -65,6 +65,7 @@ namespace ARMM
 			// This function is called after texture transferred
 			case 100: {
 				SwapingObject(osgrender);
+				osgrender->ToggleMenuVisibility();	//menu should be appeared
 				break;
 			}
 
@@ -78,7 +79,6 @@ namespace ARMM
 				}
 				break;
 			}
-
 			default:
 				//adding a virtual object into the AR environment
 				if( key > 78 && (key - offset) < static_cast<int>(mKeyAssignment.size()) )
@@ -88,14 +88,23 @@ namespace ARMM
 						cerr << "Error: register object into rendering components" << endl;
 					}
 
-					//初期設定はinvisibleにする
-					osgrender->getOsgObject()->getObjTransformArray().back()->setNodeMask(0);
-
 					#if USE_OSGMENU == 1
-					osgrender->ToggleMenuVisibility();
-					osgrender->ToggleModelButtonVisibility();
-					osgrender->ToggleVirtualObjVisibility();
-					osgrender->ResetModelButtonPos();
+					//隠しコマンドを使ってない正規の場合
+					if(osgrender->IsModelButtonVisibiilty())
+					{
+						//初期設定はinvisibleにする
+						osgrender->getOsgObject()->getObjTransformArray().back()->setNodeMask(0);
+
+						osgrender->ToggleMenuVisibility();
+						osgrender->ToggleModelButtonVisibility();
+						osgrender->ToggleVirtualObjVisibility();
+						osgrender->ResetModelButtonPos();
+					}
+					else
+					{
+						//初期設定はvisibleにする
+						osgrender->getOsgObject()->getObjTransformArray().back()->setNodeMask(0x2);
+					}
 					#endif
 				}
 				//button input

@@ -226,12 +226,13 @@ namespace ARMM
 		HeightFieldPoints = new osg::Vec3Array;
 
 		//Create Height Field
+		//TODO サーバ側のdepth perception結果を使う
 		for (int i=0; i<159; i++) {
-			for (int j=0; j<119; j++) {
-				HeightFieldPoints->push_back(osg::Vec3(i-19, j-119, 0));
-				HeightFieldPoints->push_back(osg::Vec3(i-18, j-119, 0));
-				HeightFieldPoints->push_back(osg::Vec3(i-18, j-118, 0));
-				HeightFieldPoints->push_back(osg::Vec3(i-19, j-118, 0));
+			for (int j=0; j<240; j++) {
+				HeightFieldPoints->push_back(osg::Vec3(i-19, j-119, -2));
+				HeightFieldPoints->push_back(osg::Vec3(i-18, j-119, -2));
+				HeightFieldPoints->push_back(osg::Vec3(i-18, j-118, -2));
+				HeightFieldPoints->push_back(osg::Vec3(i-19, j-118, -2));
 			}
 		}
 
@@ -473,7 +474,7 @@ namespace ARMM
 		// TODO this value depends on the state of Kinect Calibration
 		REP(i,ConstParams::MAX_NUM_HANDS)
 		{
-			osg_createHand(i, 0.68, 1.380952);
+			osg_createHand(i, 0.76, 1.190476); //second: world scale, 3rd:ratio
 		}
 		hasInit = true;
 	}
@@ -808,6 +809,7 @@ namespace ARMM
 					if(!handAppear)
 					{
 						mOsgObject->IncrementObjIndex(ConstParams::MIN_HAND_PIX*ConstParams::MIN_HAND_PIX);
+						cout << "Object Index = " << mOsgObject->getObjectIndex() << endl;
 						handAppear = true;
 					}
 
@@ -995,5 +997,10 @@ namespace ARMM
 			pModelTransArray.at(idx)->setPosition(newPos);
 		}
 
+	}
+
+	int osg_Client::GetOsgMenuAllObjectNum() const
+	{
+		return( mOsgMenu->getMenuModelObjectArray().size() + mOsgMenu->getObjMenuNodeArray().size());
 	}
 }

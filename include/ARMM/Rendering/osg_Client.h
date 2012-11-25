@@ -93,6 +93,8 @@ namespace ARMM
 				return shadowedScene;
 			}
 
+			int GetOsgMenuAllObjectNum() const;
+
 			void ToggleMenuVisibility();
 			void ToggleModelButtonVisibility();
 			void ToggleVirtualObjVisibility();

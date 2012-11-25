@@ -632,10 +632,13 @@ namespace ARMM
 
 		RegistrationParams = scaleParams(mCapture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
 		mOsgRender->osg_init(calcProjection(RegistrationParams, mCapture->getDistortion(), REGISTRATION_SIZE));
-		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 400);
+		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 523); //TODO ここの数値はキャリブレーションによって変化する。キャリブレーションファイルから読み込む方式に変更
 #if USE_OSGMENU==1
 		mOsgRender->OsgInitMenu();
 		mOsgRender->OsgInitModelButton();
+		int objectIndex = mOsgRender->getOsgObject()->getObjectIndex() //init value
+							+mOsgRender->GetOsgMenuAllObjectNum();			//the number of objects included in Menu
+		mOsgRender->getOsgObject()->setObjectIndex(objectIndex);
 #endif
 	//	m_Connection = new vrpn_Connection_IP();
 	//	ARMM_Client = new vrpn_Tracker_Remote ("ARMM_Comm", m_Connection);
@@ -705,7 +708,7 @@ namespace ARMM
 #if CAR_SIMULATION == 1
 			mOsgRender->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
 #else
-			osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion());
+			mOsgRender->osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion());
 #endif
 		}/* Virtual_Objects_Count > 0 */
 	}

@@ -34,13 +34,18 @@ namespace ARMM
 		int SizeObjNodeArray(void) const ;
 		int SizeObjTransformArray(void) const;
 
-	int getVirtualObjectsCount() const {
-		return Virtual_Objects_Count;
-	}
+		void setObjectIndex(int objectIndex) {
+			this->objectIndex = objectIndex;
+		}
 
-	int getObjectIndex() const {
-		return objectIndex;
-	}
+		int getVirtualObjectsCount() const {
+			return Virtual_Objects_Count;
+		}
+
+		int getObjectIndex() const {
+			return objectIndex;
+		}
+
 		void setObjNodeArray(std::vector<osg::Node*> objNodeArray) {
 			obj_node_array = objNodeArray;
 		}
