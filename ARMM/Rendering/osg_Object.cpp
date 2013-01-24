@@ -15,13 +15,7 @@ namespace ARMM
 	osg_Object::osg_Object()
 	:Virtual_Objects_Count(0), softTexture(false)
 	{
-#if CAR_SIMULATION == 1
-		// 2 car is in world
-		objectIndex = ConstParams::NUM_CARS;
-#else
 		objectIndex = 0;
-#endif
-
 	}
 
 	osg_Object::~osg_Object()

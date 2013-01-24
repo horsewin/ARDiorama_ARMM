@@ -28,6 +28,7 @@ namespace ARMM
 	const float SPHERE_SIZE = 2;//FULL SIZE
 
 	extern std::string pDstModel; //actually this should be deal with member of Keyboard class, but some error occurred so could not do it...
+	extern std::string pSrcModel; //actually this should be deal with member of Keyboard class, but some error occurred so could not do it...
 	int KeyboardController_client::check_input()
 	{
 		if (getKey(78)) {//N
@@ -72,10 +73,16 @@ namespace ARMM
 			//creating a texture sticked in hand when collision occurred
 			case 101:
 			{
-				const char * file = "LSCM_Newcube0.bmp";
-				if(!RegisteringSoftObject(file, osgrender))
+//				const char * file = "LSCM_Newcube0.bmp";
+				string file = pSrcModel.c_str();
+				file += ".bmp";
+				if(!RegisteringSoftObject(file.c_str(), osgrender))
 				{
 					cerr << "Error: register soft object(texture) into rendering components" << endl;
+				}
+				else
+				{
+					cout << "Soft texture have been created!!" << endl;
 				}
 				break;
 			}
@@ -176,20 +183,6 @@ namespace ARMM
 		tmpFilename += format;
 		obj->setName(tmpFilename);
 
-////				//安原モデルの場合、テクスチャ座標の調整が必要(Cube)
-//				string str(DATABASEDIR);
-//				const char * FILENAME = "cube";
-//				str += FILENAME; str+="/";
-//				string modelFileName(FILENAME);
-//				modelFileName += FORMAT;
-//				osg::ref_ptr<osg::Node> obj = (osg3DSFileFromDiorama2(modelFileName.c_str(), str.c_str()));
-//				obj->setName(str);
-//				double scale = 20; //for (Cube) for 安原モデル ただしosg3DSFileFromDioramaで調整されていること
-////				double scale = 300; //for (keyboard) for 安原モデル
-
-//				//安原モデルの場合、テクスチャ座標の調整が必要(Keyboard)
-//				const char * FILENAME = "keyboard";
-//				double scale = 300; //サーバ側の値から決定した for (keyboard) for 安原モデル
 		osgrender->osgAddObjectNode(obj.get(), scale);
 		return true;
 	}
@@ -300,8 +293,6 @@ namespace ARMM
 
 			mKeyAssignment.push_back(tmpKeyAssignment);
 		}
-
-		cout << mKeyAssignment.size() << endl;
 	}
 
 	KeyboardController_client::KeyboardController_client()
@@ -309,9 +300,6 @@ namespace ARMM
 		AssignmentKeyinput("setting.txt");
 	}
 
-	KeyboardController_client::~KeyboardController_client()
-	{
-
-	}
+	KeyboardController_client::~KeyboardController_client(){}
 }
 

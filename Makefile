@@ -187,7 +187,7 @@ Obj/%.o: %.cpp
 	$(CC) $< -o $@ -c $(COMPILEFLAGS) $(EXTRA_CFLAGS) $(ARMMINC)$(EIGENINC) $(OPENNLINC)
 
 clean:
-	rm Obj/*.o
+	rm Obj/*.o ARDiorama CameraCalibrator
 
 
 depend:

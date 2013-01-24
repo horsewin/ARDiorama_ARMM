@@ -16,27 +16,10 @@ namespace ARMM
 	ARMM_Communicator::ARMM_Communicator( vrpn_Connection *c) : vrpn_Tracker( "ARMM_Comm", c )
 	{
 		HeightfieldData = new float[19200];
-		CarsArrayPos = new osg::Vec3d[ConstParams::NUM_CARS];
-		CarsArrayQuat = new osg::Quat[ConstParams::NUM_CARS];
-		WheelsArrayPos = new osg::Vec3d*[ConstParams::NUM_CARS];
-		WheelsArrayQuat = new osg::Quat*[ConstParams::NUM_CARS];
-
-		for( int i = 0 ; i < ConstParams::NUM_CARS ; i++ ) {
-			WheelsArrayPos[i] = new osg::Vec3d[ConstParams::NUM_WHEELS];
-			WheelsArrayQuat[i] = new osg::Quat[ConstParams::NUM_WHEELS];
-		}
 	}
 
 	ARMM_Communicator::~ARMM_Communicator() {
 
-		for( int i = 0 ; i < ConstParams::NUM_CARS ; i++ ) {
-			delete [] WheelsArrayPos[i];
-			delete [] WheelsArrayQuat[i];
-		}
-		delete [] WheelsArrayPos;
-		delete [] WheelsArrayQuat;
-		delete [] CarsArrayPos;
-		delete [] CarsArrayQuat;
 		delete [] HeightfieldData;
 	}
 
@@ -48,7 +31,8 @@ namespace ARMM
 		memcpy(HeightfieldData, ground_grid, sizeof(HeightfieldData));
 	}
 
-	void ARMM_Communicator::mainloop() {
+	void ARMM_Communicator::mainloop()
+	{
 		vrpn_gettimeofday(&_timestamp, NULL);
 
 		vrpn_Tracker::timestamp = _timestamp;

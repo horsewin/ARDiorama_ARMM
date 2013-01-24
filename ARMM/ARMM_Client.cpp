@@ -1,3 +1,7 @@
+//注意；サーバ側のキャリブレーションをやり直した時に変更する場所
+// a) osg_inittrackerに渡すマーカサイズ
+// b) osg_inittracker()の最後の分で呼び出している手のスフィアのサイズ
+
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -86,12 +90,6 @@ namespace ARMM
 	#endif
 
 	//osg objects
-#if CAR_SIMULATION == 1
-	osg::Quat		CarsArrayQuat[ConstParams::NUM_CARS];
-	osg::Quat		WheelsArrayQuat[ConstParams::NUM_CARS][4];
-	osg::Vec3d		CarsArrayPos[ConstParams::NUM_CARS];
-	osg::Vec3d		WheelsArrayPos[ConstParams::NUM_CARS][4];
-#endif /* #if CAR_SIMULATION == 1 */
 	osg::Vec3d		ObjectsArrayPos[ConstParams::NUM_OBJECTS];
 	osg::Quat		ObjectsArrayQuat[ConstParams::NUM_OBJECTS];
 
@@ -99,7 +97,7 @@ namespace ARMM
 	// Constant/Define
 	//---------------------------------------------------------------------------
 	const float OSG_SCALE = 10;
-	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.106"; //this value depends on IP address assigned computer
+	const char *ARMM_SERVER_IP = "ARMM_Comm@192.168.100.107"; //this value depends on IP address assigned computer
 
 	//---------------------------------------------------------------------------
 	// Code
@@ -423,34 +421,22 @@ namespace ARMM
 	//-----> Callback function
 	void VRPN_CALLBACK handle_pos (void * userData, const vrpn_TRACKERCB t)
 	{
-		if( t.sensor < ConstParams::CAR_PARAM){
-#if CAR_SIMULATION == 1
-			if(t.sensor % 5 == 0) {// pos and orientation of cars
-				int j = (int) t.sensor / 5;
-				CarsArrayPos[j] = osg::Vec3d((float) t.pos[0],(float) t.pos[1],(float) t.pos[2]);
-				CarsArrayQuat[j] = osg::Quat((float) t.quat[0], (float) t.quat[1], (float) t.quat[2], (float) t.quat[3]);
-			} else { //pos and orientation of car's wheels
-				int j = (int) floor((float) t.sensor/5);
-				int k = (t.sensor % 5) -1;
-				WheelsArrayPos[j][k] = osg::Vec3d((float) t.pos[0],(float) t.pos[1],(float) t.pos[2]);
-				WheelsArrayQuat[j][k]= osg::Quat((float) t.quat[0], (float) t.quat[1], (float) t.quat[2], (float) t.quat[3]);
-			}
-#endif /* CAR_SIMULATION == 1 */
-		}
-
 		//----->Keyboard input checker
-		else if( t.sensor == ConstParams::CAR_PARAM){
-			if ( static_cast<int>(t.pos[0]) != 0){
+		if( t.sensor == 0)
+		{
+			if ( static_cast<int>(t.pos[0]) != 0)
+			{
 				m_pass = static_cast<int>(t.pos[0]);
 			}
 		}
-
 		//----->Collision checker
-		else if( t.sensor > ConstParams::CAR_PARAM && t.sensor <= ConstParams::COLLISION_PARAM)
+		else if( t.sensor > 0 && t.sensor <= ConstParams::COLLISION_PARAM)
 		{
-			REP(p,3){
+			REP(p,3)
+			{
 				pCollision[p] = (float)t.pos[p];			// the position of collision
 			}
+
 			if( t.quat[0] > 0.5) stroke = true;		// flag whether stroke on or off
 			else					stroke = false;
 			if( t.quat[1] > 0.5) touch  = true;		// flag whether touch on or off
@@ -459,7 +445,8 @@ namespace ARMM
 		}
 
 		//----->Receive objects info
-		else{
+		else
+		{
 			int index = t.sensor - (ConstParams::COLLISION_PARAM+1);
 			ObjectsArrayPos[index].set(  osg::Vec3d((float)t.pos[0]*OSG_SCALE , (float)t.pos[1]*OSG_SCALE , (float)t.pos[2]*OSG_SCALE));
 			osg::Quat quat = osg::Quat((double)t.quat[0]*OSG_SCALE, (double)t.quat[1]*OSG_SCALE, (double)t.quat[2]*OSG_SCALE, (double)t.quat[3]*OSG_SCALE);
@@ -467,6 +454,7 @@ namespace ARMM
 //			printf("(%f,%f,%f)\n",(float)t.pos[0]*OSG_SCALE , (float)t.pos[1]*OSG_SCALE , (float)t.pos[2]*OSG_SCALE);
 		}
 	}
+
 	void VRPN_CALLBACK handle_hands (void * userData, const vrpn_TRACKERHANDCB h)
 	{
 		int count = 0;
@@ -480,7 +468,7 @@ namespace ARMM
 			}else{
 				hand_coord_x[0][i] = 0;
 				hand_coord_y[0][i] = 0;
-				hand_coord_z[0][i] = 1000;
+				hand_coord_z[0][i] = -1000;
 			}
 		}
 	}
@@ -529,6 +517,14 @@ namespace ARMM
 	{
 
 //		TickCountAverageBegin();
+
+//		//手の初期化ー＞hand spheresがちらつくからダメ×
+//		REP(i,ConstParams::HAND_SIZE)
+//		{
+//			hand_coord_x[0][i] = 0;
+//			hand_coord_y[0][i] = 0;
+//			hand_coord_z[0][i] = -1000;
+//		}
 		mARMMClient->mainloop();
 //		TickCountAverageEnd();
 		IplImage *arImage = mCapture->getFrame();
@@ -548,10 +544,10 @@ namespace ARMM
 #else
 		if( m_pass != 0)
 		{
-			cout << m_pass << endl;
 			mKC->set_input(m_pass, mOsgRender);
 			m_pass = 0;
 		}
+//		printf("mpass=%d\n",m_pass);
 
 		DecideCollisionCondition();
 
@@ -568,7 +564,8 @@ namespace ARMM
 
 //			cout << "Last Collided obj index = " << collisionInd	 << endl;
 //			cout << "All of Object index = " << objectIndex  << endl;
-			collidedNodeInd = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) - (objIndex  - collisionInd);
+//			collidedNodeInd = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) - (objIndex  - collisionInd);
+			collidedNodeInd = ((mOsgRender->getOsgObject()->SizeObjTransformArray()) - (objIndex  - collisionInd) - 1);
 			output << "d " << endl; //as delimitar
 			GetCollisionCoordinate(collidedNodeInd);
 			pDstModel = mOsgRender->getOsgObject()->getObjNodeArray().at(collidedNodeInd)->getName();
@@ -593,51 +590,19 @@ namespace ARMM
 #endif
 	}
 
-/*	void ARMM::Run( ImageType imRGB)
-	{
-
-		IplImage *arImage = capture->getFrame();
-		armm_client->mainloop();
-		RenderScene(arImage, capture);
-		cvReleaseImage(&arImage);
-#ifdef USE_CLIENT_SENDER
-		ARMM_client_sender->SetPasskey( kc->check_input() );
-		if( ARMM_client_sender->GetPasskey()  != 0){
-			ARMM_client_sender->mainloop();
-		}
-#else
-		if( m_pass != 0){
-			kc->set_input(m_pass);
-			m_pass = 0;
-		}
-		#endif
-	}*/
-
-
 	void ARMM::Init( void )
 	{
 		// initialize values of virtual objects
-#if CAR_SIMULATION == 1
-		for(int i =0; i < ConstParams::NUM_CARS; i++) {
-			CarsArrayPos[i] = osg::Vec3d(0,0,0);
-			CarsArrayQuat[i] = osg::Quat(0,0,0,1);
-			for(int j =0; j < ConstParams::NUM_WHEELS; j++)
-			{
-				WheelsArrayPos[i][j] = osg::Vec3d(0,0,0);
-				WheelsArrayQuat[i][j] = osg::Quat(0,0,0,1);
-			}
-		}
-#endif
 		mOsgRender = boost::shared_ptr<osg_Client>(new osg_Client());
 
 		RegistrationParams = scaleParams(mCapture->getParameters(), double(REGISTRATION_SIZE.width)/double(CAPTURE_SIZE.width));
 		mOsgRender->osg_init(calcProjection(RegistrationParams, mCapture->getDistortion(), REGISTRATION_SIZE));
-		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 523); //TODO ここの数値はキャリブレーションによって変化する。キャリブレーションファイルから読み込む方式に変更
+		mOsgRender->osg_inittracker(ConstParams::MARKER_FILENAME, 400, 381); //TODO ここの数値はキャリブレーションによって変化する。キャリブレーションファイルから読み込む方式に変更
 #if USE_OSGMENU==1
 		mOsgRender->OsgInitMenu();
 		mOsgRender->OsgInitModelButton();
-		int objectIndex = mOsgRender->getOsgObject()->getObjectIndex() //init value
-							+mOsgRender->GetOsgMenuAllObjectNum();			//the number of objects included in Menu
+		int objectIndex =		mOsgRender->getOsgObject()->getObjectIndex() //init value
+							+	mOsgRender->GetOsgMenuAllObjectNum();			//the number of objects included in Menu
 		mOsgRender->getOsgObject()->setObjectIndex(objectIndex);
 #endif
 	//	m_Connection = new vrpn_Connection_IP();
@@ -688,8 +653,8 @@ namespace ARMM
 	//	osg::ref_ptr<osg::Vec2Array> texcoords = tmp Geo->getTexCoordArray(0);
 	//	cout << "Texture size = " << texcoords->size() << endl;
 //	}
-		if(mOsgRender->getOsgObject()->getVirtualObjectsCount() > 0) {
-
+		if(mOsgRender->getOsgObject()->getVirtualObjectsCount() > 0)
+		{
 			DeleteLostObject();
 			std::vector <osg::Quat> quat_obj_array;
 			std::vector <osg::Vec3d> vect_obj_array;
@@ -698,18 +663,12 @@ namespace ARMM
 				vect_obj_array.push_back(ObjectsArrayPos[i]);
 			}
 			mOsgRender->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
-#if CAR_SIMULATION == 1
-			mOsgRender->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion(), quat_obj_array, vect_obj_array);
-#else
-			(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion(), quat_obj_array, vect_obj_array);
-#endif
-		} else {
+			mOsgRender->osg_client_render(arImage, RegistrationParams, mCapture->getDistortion(), quat_obj_array, vect_obj_array);
+		}
+		else
+		{
 			mOsgRender->osg_UpdateHand(0, hand_coord_x[0], hand_coord_y[0], hand_coord_z[0]);
-#if CAR_SIMULATION == 1
-			mOsgRender->osg_client_render(arImage, CarsArrayQuat, CarsArrayPos, WheelsArrayQuat, WheelsArrayPos, RegistrationParams, capture->getDistortion());
-#else
-			mOsgRender->osg_client_render(arImage, NULL, NULL, NULL, NULL, RegistrationParams, mCapture->getDistortion());
-#endif
+			mOsgRender->osg_client_render(arImage, RegistrationParams, mCapture->getDistortion());
 		}/* Virtual_Objects_Count > 0 */
 	}
 
@@ -725,6 +684,7 @@ namespace ARMM
 			if( ObjectsArrayPos[i].z() < -100 )
 			{
 				obj_ind.push_back(i);
+
 				//writeback coord
 				if( mOsgRender->getOsgObject()->getVirtualObjectsCount() == 1){}
 				else{
@@ -810,9 +770,12 @@ namespace ARMM
 
 						cout << "Collided obj  index = " << collisionInd	 << endl;
 						cout << "All of Object index = " << mOsgRender->getOsgObject()->getObjectIndex() << endl;
-						int ind = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) -
-								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd);
+//						int ind = (mOsgRender->getOsgObject()->SizeObjTransformArray()-1) -
+//								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd);
+						int ind = ( (mOsgRender->getOsgObject()->SizeObjTransformArray()) -
+								(mOsgRender->getOsgObject()->getObjectIndex()- collisionInd)) - 1;
 
+						cout << "object index = " << ind << endl;
 						//restoring the name of collided model
 						pSrcModel = mOsgRender->getOsgObject()->getObjNodeArray().at(ind)->getName();
 						cout << "Source model name = " << pSrcModel.c_str() << endl;
@@ -820,7 +783,7 @@ namespace ARMM
 						//make the updater for soft texture ON
 						mOsgRender->getOsgObject()->setSoftTexture(true);
 
-						// set a created hand to the graphics tree
+						// create soft texture
 						mKC->set_input(101, mOsgRender);
 
 						m_pass = 0;

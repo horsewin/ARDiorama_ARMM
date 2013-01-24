@@ -70,7 +70,7 @@ namespace ARMM
 		//register some components
 		CreateUnit("Controller.3ds", osg::Vec3d( 25, 0, 80));
 		CreateUnit("model.3ds", osg::Vec3d(25, 0, 0));			//keyboard input = 201
-		CreateUnit("reset.3ds", osg::Vec3d(25, 0, 30));			//keyboard input = 202
+		CreateUnit("reset.3ds", osg::Vec3d(-25, 0, 30));			//keyboard input = 202
 		CreateUnit("StartTransfer.3ds", osg::Vec3d(25, 0, 60));	//keyboard input = 203
 		//CreateUnit("SphereButton.3ds");
 		//CreateUnit("car1.3ds", osg::Vec3d(-25, 0, 0));
@@ -92,7 +92,7 @@ namespace ARMM
 		int id=0;
 		for(;id<modelSize; id++)
 		{
-			CreateModelButton( mKeyAssignment.at(id).second.c_str(), osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset, mInitPosZ));
+			CreateModelButton( mKeyAssignment.at(id).second.c_str(), osg::Vec3( (id%modelCol)*xOffset, (id/modelCol)*yOffset-50, mInitPosZ));
 		}
 		CreateModelButton("cancel", osg::Vec3(0, -250, mInitPosZ));
 	}
@@ -146,11 +146,13 @@ namespace ARMM
 
 	void osg_Menu::CreateUnit(const char * buttonfilename, osg::Vec3d pos)
 	{
-		const osg::Vec3d UNITBASEPOSITION(50, -200, 10);
+//		const osg::Vec3d UNITBASEPOSITION(0, -0, 10);
+		const osg::Vec3d UNITBASEPOSITION(250, -200, 10);
 		const osg::Quat UNITATTITUDE = osg::Quat(
 			osg::DegreesToRadians(-90.f), osg::Vec3d(1.0, 0.0, 0.0),
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 1.0, 0.0),
 			osg::DegreesToRadians(0.f), osg::Vec3d(0.0, 0.0, 1.0)
+//			osg::DegreesToRadians(180.f), osg::Vec3d(0.0, 0.0, 1.0)
 		);
 
 		//create button unit with osg::Node

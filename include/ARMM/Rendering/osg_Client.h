@@ -66,32 +66,30 @@ namespace ARMM
 			~osg_Client(){};
 
 			void osg_init(double *projMatrix);
+			void osg_uninit();
 			void osg_inittracker(std::string markerName, int maxLengthSize, int maxLengthScale);
 			void OsgInitMenu();
 			void OsgInitModelButton();
-			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort);
-			void osg_client_render(IplImage *newFrame, osg::Quat *q,osg::Vec3d  *v, osg::Quat wq[][4], osg::Vec3d wv[][4], CvMat *cParams, CvMat *cDistort, std::vector <osg::Quat> q_array,std::vector <osg::Vec3d>  v_array);
-			void osg_uninit();
-			void osg_UpdateHeightfieldTrimesh(float *ground_grid);
+
+			//rendering
+			void osg_client_render(IplImage *newFrame, CvMat *cParams, CvMat *cDistort);
+			void osg_client_render(IplImage *newFrame, CvMat *cParams, CvMat *cDistort, std::vector <osg::Quat> q_array,std::vector <osg::Vec3d>  v_array);
+
+			//create
+			void osg_createHand(int index, float world_scale, float ratio);
 			void osgAddObjectNode(osg::Node* n);
 			void osgAddObjectNode(osg::Node* n, const double & scale);
 			void osgAddObjectNode(osg::Node* n, const double & scale, const osg::Quat & quat);
-			//void osg_setHFNode(osg::Node* n);
-			void osg_createHand(int index, float world_scale, float ratio);
+
+			//update
+			void osg_UpdateHeightfieldTrimesh(float *ground_grid);
 			void osg_UpdateHand(int index, float *x, float *y, float *grid);
 			void osg_UpdateSoftTexture(void);
 
-			boost::shared_ptr<osg_Object> getOsgObject() const {
-				return mOsgObject;
-			}
-
-			void setOsgObject(boost::shared_ptr<osg_Object> osgObject) {
-				mOsgObject = osgObject;
-			}
-
-			osg::ref_ptr<osgShadow::ShadowedScene> getShadowedScene() const {
-				return shadowedScene;
-			}
+			//setters and getters
+			boost::shared_ptr<osg_Object> getOsgObject() const { return mOsgObject; }
+			void setOsgObject(boost::shared_ptr<osg_Object> osgObject) { mOsgObject = osgObject; }
+			osg::ref_ptr<osgShadow::ShadowedScene> getShadowedScene() const { return shadowedScene; }
 
 			int GetOsgMenuAllObjectNum() const;
 
@@ -115,6 +113,7 @@ namespace ARMM
 			boost::shared_ptr<osg_Menu>mOsgMenu;
 
 			double gAddModelAnimation;
+
 	};
 }
 #endif

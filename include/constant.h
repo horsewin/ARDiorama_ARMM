@@ -1,7 +1,6 @@
 #ifndef CONSTANT_H
 #define CONSTANT_H
 
-#define CAR_SIMULATION 1
 #define SIM_MICROMACHINE 1
 #define USE_OSGMENU 1
 
@@ -54,21 +53,9 @@ namespace ARMM
 		static const char *  KINECT_PARAMS_FILENAME;
 		static const char *  KINECT_TRANSFORM_FILENAME;
 		static const char *  KINECT_CONFIG_FILENAME;
-		static const char *  CAR1_BODY_FILENAME;
-		static const char *  CAR1_WHEEL_FILENAME;
-		static const char *  CAR2_BODY_FILENAME;
-		static const char *  CAR2_WHEEL_FILENAME;
 
-#if CAR_SIMULATION == 1
-		enum{NUM_CARS = 2};
-		enum{NUM_WHEELS = 4};
-#else
-		enum{NUM_CARS = 0};
-		enum{NUM_WHEELS = 0};
-#endif
 
 		enum{NUM_OBJECTS = 10};
-		static const int CAR_PARAM;
 		static const int COLLISION_PARAM;
 
 		//window size

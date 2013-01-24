@@ -34,6 +34,7 @@ namespace ARMM
 		int SizeObjNodeArray(void) const ;
 		int SizeObjTransformArray(void) const;
 
+
 		void setObjectIndex(int objectIndex) {
 			this->objectIndex = objectIndex;
 		}
